@@ -1,6 +1,6 @@
-import java.io.*;
 import java.util.ArrayList;
 import java.net.*;
+import java.io.*;
 
 public class ClientHandler extends Thread {
 

@@ -1,18 +1,8 @@
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.URL;
 import java.net.*;
 import java.io.*;
-
-import com.google.gson.JsonParser;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonElement;
-import com.google.gson.stream.JsonReader;
-import java.net.URL;
-import java.net.InetAddress;
-import com.google.gson.JsonObject;
-import com.google.gson.Gson;
-
-
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 public class Chat {
     public static void main(String[] args) throws IOException {
