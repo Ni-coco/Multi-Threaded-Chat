@@ -11,6 +11,9 @@ import java.awt.*;
 import java.net.*;
 import java.io.*;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
 public class frame implements ActionListener, KeyListener {
 
     /* Related to Frame */
@@ -30,10 +33,18 @@ public class frame implements ActionListener, KeyListener {
     private String[] tmp;
     private String ip = getIP();
 
-    public frame () {
+    public frame (int server) {
         try {
             setFrame();
             win.setVisible(true);
+            if (server == 1) {
+                win.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosing(WindowEvent e) {
+                        changeRun();
+                    }
+                });
+            }
             this.socket = new Socket(ip, 8888);
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
@@ -41,6 +52,26 @@ public class frame implements ActionListener, KeyListener {
         } catch (Exception e) {
             closeAll(socket, bufferedReader, bufferedWriter);
         }
+    }
+
+    public void changeRun() {
+        try {
+            URL ipAdress = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
+            InetAddress inetAddress = InetAddress.getLocalHost();
+            String newiP = "{\"server_ip\": \""+inetAddress.getHostAddress()+"\",\"run\": \"n\"}";
+            HttpURLConnection connection = (HttpURLConnection) ipAdress.openConnection();
+            connection.setRequestMethod("PUT");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("X-Access-Key", "$2b$10$QAfPKovzaXfK91VARTkrW.Dw0BxfpJiCs8DebJdaPFQG5uqq37f2O");
+            connection.setDoOutput(true);
+            OutputStream outputStream = connection.getOutputStream();
+            outputStream.write(newiP.getBytes());
+            outputStream.flush();
+            outputStream.close();
+            int reponse = connection.getResponseCode();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
     }
 
     public String getIP() {
