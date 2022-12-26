@@ -39,11 +39,9 @@ public class ClientHandler extends Thread {
     public void broadcast(String message) {
         for (ClientHandler list : clientHandlers) {
             try {
-                if (!list.clientUsername.equals(clientUsername)) {
-                    list.bufferedWriter.write(message);
-                    list.bufferedWriter.newLine();
-                    list.bufferedWriter.flush();
-                }
+                list.bufferedWriter.write(message);
+                list.bufferedWriter.newLine();
+                list.bufferedWriter.flush();
             } catch (Exception e) {
                 closeAll(socket, bufferedReader, bufferedWriter);
             }
