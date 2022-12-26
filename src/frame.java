@@ -7,6 +7,12 @@ import java.util.List;
 import java.awt.*;
 import java.io.*;
 import java.net.*;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
+import com.google.gson.stream.JsonReader;
+import java.net.URL;
+import com.google.gson.Gson;
 
 public class frame implements ActionListener, KeyListener {
 
@@ -25,18 +31,36 @@ public class frame implements ActionListener, KeyListener {
     private String clientUsername;
     private Color clientColor;
     private String[] tmp;
+    private String ip = getIP();
 
     public frame () {
         try {
             setFrame();
             win.setVisible(true);
-            this.socket = new Socket("192.168.1.46", 8888);
+            this.socket = new Socket(ip, 8888);
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.clientUsername = getUsername();
         } catch (Exception e) {
             closeAll(socket, bufferedReader, bufferedWriter);
         }
+    }
+
+    public String getIP() {
+        try {
+            URL ipAdress = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
+            HttpURLConnection connection = (HttpURLConnection) ipAdress.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("X-Access-Key", "$2b$10$QAfPKovzaXfK91VARTkrW.Dw0BxfpJiCs8DebJdaPFQG5uqq37f2O");
+            InputStream in = connection.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            String tmp = reader.readLine();
+            Gson gson = new Gson();
+            JsonObject json = gson.fromJson(tmp, JsonObject.class);
+            JsonObject data = json.get("record").getAsJsonObject();
+            return data.get("server_ip").toString().replaceAll("\"", "");
+        } catch (Exception e) {e.printStackTrace();}
+        return "";
     }
 
     public void setFrame() {
