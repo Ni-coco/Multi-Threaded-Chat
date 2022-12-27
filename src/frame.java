@@ -28,12 +28,13 @@ public class frame implements ActionListener, KeyListener {
     private Color clientColor;
     private String[] tmp;
     private String ip = GetJson.getIP();
+    private int server;
 
-    public frame (int server) {
+    public frame (int aserver) {
         try {
             setFrame();
             win.setVisible(true);
-            if (server == 1) {
+            if (aserver == 1) {
                 win.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosing(WindowEvent e) {
@@ -45,6 +46,7 @@ public class frame implements ActionListener, KeyListener {
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.clientUsername = getUsername();
+            this.server = aserver;
         } catch (Exception e) {
             closeAll(socket, bufferedReader, bufferedWriter);
         }
@@ -104,9 +106,7 @@ public class frame implements ActionListener, KeyListener {
 
     public void sendEntered() {
         try {
-            bufferedWriter.write(getColor() + "/" + clientUsername);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+            send(getColor() + "/" + clientUsername);
         } catch (Exception e) {
             e.printStackTrace();
             closeAll(socket, bufferedReader, bufferedWriter);
@@ -134,18 +134,6 @@ public class frame implements ActionListener, KeyListener {
         }).start();
     }
 
-    public void closeAll (Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
-        try {
-            if (bufferedReader != null)
-                bufferedReader.close();
-            if (bufferedWriter != null)
-                bufferedWriter.close();
-            if (socket != null)
-                socket.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     public boolean check_message(String message) {
         return true;
@@ -160,10 +148,7 @@ public class frame implements ActionListener, KeyListener {
         if (e.getSource() == btn) {
             if (!message.getText().equals("") && !(message.getText().length() > 116)) {
                 try {
-                    String tmp = message.getText();
-                    bufferedWriter.write(getColor() + "/" + clientUsername + ": " + tmp);
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
+                    cmd(message.getText());
                     message.setText("");
                 } catch (Exception a) {
                     closeAll(socket, bufferedReader, bufferedWriter);
@@ -179,19 +164,78 @@ public class frame implements ActionListener, KeyListener {
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
             if (!message.getText().equals("") && !(message.getText().length() > 116)) {
                 try {
-                    String tmp = message.getText();
-                    bufferedWriter.write(getColor() + "/" + clientUsername + ": " + tmp);
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
+                    cmd(message.getText());
                     message.setText("");
                 } catch (Exception a) {
                     closeAll(socket, bufferedReader, bufferedWriter);
                 }
             }
+            else if (server == 2) {
+                GetJson.changeServer('n');
+                System.exit(0);
+            }
             else
                 JOptionPane.showMessageDialog(null, "Message too long", "Error", JOptionPane.ERROR_MESSAGE);
         }
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            if (server == 2) {
+                try {
+                    //send("Neverming, the host change is mind.");
+                    JLabel label = new JLabel("You cancel your action.");
+                    label.setFont(new Font("Arial", Font.PLAIN, 14));
+                    label.setForeground(Color.RED);
+                    listm.add(label);
+                    displayMsg();
+                    server = 1;
+                } catch (Exception a) {}
+            }
+        }
     }
+
+    public void cmd(String message) {
+        try {
+            if (message.equals("/quit")) {
+                if (server == 1) {
+                    //send("The server will shut down. Prepare to re-run the program.");
+                    JLabel label = new JLabel("You're hosting the server, if your quitting everyone will be disconnected. Press Enter to confirm or Escape to cancel");
+                    label.setFont(new Font("Arial", Font.PLAIN, 14));
+                    label.setForeground(Color.RED);
+                    listm.add(label);
+                    displayMsg();
+                    server = 2;
+                }
+                else {
+                    System.exit(0);
+                }
+            }
+            else
+                send(getColor() + "/" + clientUsername + ": " + message);
+        } catch (Exception e) {}
+    }
+
+    public void send(String msg) {
+        try {
+            bufferedWriter.write(msg);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void closeAll (Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+        try {
+            if (bufferedReader != null)
+                bufferedReader.close();
+            if (bufferedWriter != null)
+                bufferedWriter.close();
+            if (socket != null)
+                socket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void keyTyped(KeyEvent e) {}
     public void keyReleased(KeyEvent e) {}
 }
