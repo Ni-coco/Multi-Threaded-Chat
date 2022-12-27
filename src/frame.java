@@ -1,18 +1,14 @@
-import com.google.gson.JsonObject;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.BorderLayout;
-import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.Random;
 import java.awt.event.*;
 import java.util.List;
 import javax.swing.*;
-import java.net.URL;
 import java.awt.*;
 import java.net.*;
 import java.io.*;
-
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 public class frame implements ActionListener, KeyListener {
 
@@ -31,7 +27,7 @@ public class frame implements ActionListener, KeyListener {
     private String clientUsername;
     private Color clientColor;
     private String[] tmp;
-    private String ip = getIP();
+    private String ip = GetJson.getIP();
 
     public frame (int server) {
         try {
@@ -41,7 +37,7 @@ public class frame implements ActionListener, KeyListener {
                 win.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosing(WindowEvent e) {
-                        changeRun();
+                        GetJson.changeServer('n');
                     }
                 });
             }
@@ -52,43 +48,6 @@ public class frame implements ActionListener, KeyListener {
         } catch (Exception e) {
             closeAll(socket, bufferedReader, bufferedWriter);
         }
-    }
-
-    public void changeRun() {
-        try {
-            URL ipAdress = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
-            InetAddress inetAddress = InetAddress.getLocalHost();
-            String newiP = "{\"server_ip\": \""+inetAddress.getHostAddress()+"\",\"run\": \"n\"}";
-            HttpURLConnection connection = (HttpURLConnection) ipAdress.openConnection();
-            connection.setRequestMethod("PUT");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("X-Access-Key", "$2b$10$QAfPKovzaXfK91VARTkrW.Dw0BxfpJiCs8DebJdaPFQG5uqq37f2O");
-            connection.setDoOutput(true);
-            OutputStream outputStream = connection.getOutputStream();
-            outputStream.write(newiP.getBytes());
-            outputStream.flush();
-            outputStream.close();
-            int reponse = connection.getResponseCode();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-    }
-
-    public String getIP() {
-        try {
-            URL ipAdress = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
-            HttpURLConnection connection = (HttpURLConnection) ipAdress.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("X-Access-Key", "$2b$10$QAfPKovzaXfK91VARTkrW.Dw0BxfpJiCs8DebJdaPFQG5uqq37f2O");
-            InputStream in = connection.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-            String tmp = reader.readLine();
-            Gson gson = new Gson();
-            JsonObject json = gson.fromJson(tmp, JsonObject.class);
-            JsonObject data = json.get("record").getAsJsonObject();
-            return data.get("server_ip").toString().replaceAll("\"", "");
-        } catch (Exception e) {e.printStackTrace();}
-        return "";
     }
 
     public void setFrame() {
@@ -143,10 +102,6 @@ public class frame implements ActionListener, KeyListener {
         pn[0].repaint();
     }
 
-    public String getUsername() {
-        return JOptionPane.showInputDialog("Enter your username."); 
-    }
-
     public void sendEntered() {
         try {
             bufferedWriter.write(getColor() + "/" + clientUsername);
@@ -194,6 +149,10 @@ public class frame implements ActionListener, KeyListener {
 
     public boolean check_message(String message) {
         return true;
+    }
+
+    public String getUsername() {
+        return JOptionPane.showInputDialog("Enter your username."); 
     }
 
     @Override
