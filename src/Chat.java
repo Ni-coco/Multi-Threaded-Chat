@@ -1,4 +1,5 @@
 import java.net.*;
+import com.formdev.flatlaf.FlatDarkLaf;
 
 public class Chat {
     public static void main(String[] args) {
@@ -11,8 +12,7 @@ public class Chat {
                 new Server(serverSocket).start();
             }
         } catch (Exception e) {}
-        frame client = new frame(server);
-        client.listen();
-        client.sendEntered();
+        FlatDarkLaf.setup();
+        new frame(server);
     }
 }

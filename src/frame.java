@@ -13,7 +13,12 @@ import java.io.*;
 public class frame implements ActionListener, KeyListener {
 
     /* Related to Frame */
+    private ImageIcon co = new ImageIcon(new ImageIcon(getClass().getClassLoader().getResource("img/connect.png")).getImage().getScaledInstance(10, 10, Image.SCALE_SMOOTH));
+    private List<String> listofUser = new ArrayList<String>();
     private JFrame win = new JFrame();
+    private JMenuBar menuBar = new JMenuBar();
+    private JMenu connect = new JMenu("En ligne");
+    private JMenuItem item = new JMenuItem();
     private JPanel pn[] = new JPanel[2];
     private JTextField message = new JTextField();
     private JButton btn = new JButton("Envoyer");
@@ -32,8 +37,15 @@ public class frame implements ActionListener, KeyListener {
 
     public frame (int aserver) {
         try {
+            this.clientUsername = getUsername();
             setFrame();
             win.setVisible(true);
+            this.socket = new Socket(ip, 8888);
+            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            this.server = aserver;
+            listen();
+            sendEntered();
             if (aserver == 1) {
                 win.addWindowListener(new WindowAdapter() {
                     @Override
@@ -41,12 +53,10 @@ public class frame implements ActionListener, KeyListener {
                         GetJson.changeServer('n');
                     }
                 });
+                listofUser.add(clientUsername);
+                displayConnected();
+                isConnected();
             }
-            this.socket = new Socket(ip, 8888);
-            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            this.clientUsername = getUsername();
-            this.server = aserver;
         } catch (Exception e) {
             closeAll(socket, bufferedReader, bufferedWriter);
         }
@@ -56,13 +66,18 @@ public class frame implements ActionListener, KeyListener {
         win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         win.setSize(new Dimension(1080, 720));
         win.setVisible(true);
-        win.getContentPane().setBackground(Color.BLACK);
+        win.getContentPane().setBackground(new Color(60, 63, 65));
         win.setLayout(new BorderLayout());
+
+        menuBar.setBackground(Color.BLACK);
+        menuBar.add(connect);
+        win.setJMenuBar(menuBar);
 
         pn[0] = new JPanel();
         pn[0].setBackground(Color.BLACK);
         pn[0].setLayout(new GridBagLayout());
         JScrollPane scrollPane = new JScrollPane(pn[0]);
+        scrollPane.setBorder(BorderFactory.createLineBorder(Color.BLACK, 5));
         scrollPane.setBackground(Color.BLACK);
         win.add(scrollPane, BorderLayout.CENTER);
 
@@ -114,21 +129,69 @@ public class frame implements ActionListener, KeyListener {
         }
     }
 
+    public void isConnected() {
+        new Thread(new Runnable() {
+            String tmp;
+            @Override
+            public void run() {
+                while (socket.isConnected()) {
+                    tmp = String.join("§", listofUser);
+                    send(tmp);
+                    try {
+                        Thread.sleep(5000);
+                    } catch (Exception e) {}
+                }
+            }
+        }).start();
+    }
+
+    public void displayConnected () {
+        connect.removeAll();
+        for (int i = 0; i < listofUser.size(); i++) {
+            item = new JMenuItem();
+            item.setText(listofUser.get(i));
+            item.setIcon(co);
+            connect.add(item);
+        }
+    }
+
     public void listen() {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 JLabel label = new JLabel();
+                String str;
                 while (socket.isConnected()) {
                     try {
-                        tmp = bufferedReader.readLine().split("/");
-                        clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
-                        label = new JLabel(tmp[1]);
-                        label.setFont(new Font("Arial", Font.PLAIN, 14));
-                        label.setForeground(clientColor);
-                        listm.add(label);
-                        displayMsg();
+                        str = bufferedReader.readLine();
+                        if (server != 1 && str.contains("§")) {
+                            tmp = str.split("§");
+                            listofUser.clear();
+                            for (int i = 0; i < tmp.length; i++)
+                                listofUser.add(tmp[i]);
+                            displayConnected();
+                        }
+                        else if (str.contains("/")) {
+                            tmp = str.split("/");
+                            clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
+                            label = new JLabel(tmp[1]);
+                            label.setFont(new Font("Arial", Font.PLAIN, 14));
+                            label.setForeground(clientColor);
+                            listm.add(label);
+                            displayMsg();
+                            str = tmp[1].substring(0,tmp[1].indexOf(" "));
+                            if (server == 1 && !String.join("", listofUser).contains(str) && tmp[1].contains("a rejoint le serveur!")) {
+                                listofUser.add(str);
+                                displayConnected();
+                            }
+                            else if (server == 1 && String.join("", listofUser).contains(str) && tmp[1].contains("a quitté le serveur!")) {
+                                listofUser.remove(str);
+                                connect.removeAll();
+                                displayConnected();
+                            }
+                        }
                     } catch (Exception e) {
+                        e.printStackTrace();
                         server = -1;
                         label = new JLabel("The server will be shut down. Prepare to re-run the program. Press Enter to continue");
                         label.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -201,6 +264,10 @@ public class frame implements ActionListener, KeyListener {
                 } catch (Exception a) {}
             }
         }
+        if (server == 1 && (e.getKeyCode() == KeyEvent.VK_INSERT)) {
+            for (int i = 0; i < listofUser.size(); i++)
+                System.out.println(listofUser.get(i));
+        }
     }
 
     public void cmd(String message) {
@@ -214,9 +281,8 @@ public class frame implements ActionListener, KeyListener {
                     displayMsg();
                     server = 2;
                 }
-                else {
+                else
                     System.exit(0);
-                }
             }
             else
                 send(getColor() + "/" + clientUsername + ": " + message);
@@ -244,6 +310,7 @@ public class frame implements ActionListener, KeyListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        GetJson.changeServer('n');
         System.exit(0);
     }
 
