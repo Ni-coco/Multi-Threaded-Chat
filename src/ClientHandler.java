@@ -9,12 +9,13 @@ public class ClientHandler extends Thread {
     private Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
+    private int dummy = 1;
 
     public ClientHandler (Socket asocket) {
         try {
             this.socket = asocket;
-            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
             this.clientUsername = bufferedReader.readLine();
             clientHandlers.add(this);
             broadcast(clientUsername + " a rejoint le serveur!");
@@ -36,6 +37,23 @@ public class ClientHandler extends Thread {
         }
     } 
 
+    public void closeAll (Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+        try {
+            clientHandlers.remove(this);
+            if (dummy == 1)
+                broadcast(clientUsername + " a quitté le serveur!");
+            dummy = 0;
+            if (bufferedReader != null)
+                bufferedReader.close();
+            if (bufferedWriter != null)
+                bufferedWriter.close();
+            if (socket != null)
+                socket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void broadcast(String message) {
         for (ClientHandler list : clientHandlers) {
             try {
@@ -45,21 +63,6 @@ public class ClientHandler extends Thread {
             } catch (Exception e) {
                 closeAll(socket, bufferedReader, bufferedWriter);
             }
-        }
-    }
-
-    public void closeAll (Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
-        try {
-            clientHandlers.remove(this);
-            broadcast(clientUsername + " a quitté le serveur!");
-            if (bufferedReader != null)
-                bufferedReader.close();
-            if (bufferedWriter != null)
-                bufferedWriter.close();
-            if (socket != null)
-                socket.close();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }
