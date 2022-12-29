@@ -75,6 +75,7 @@ public class frame implements ActionListener, KeyListener {
         message.setPreferredSize(new Dimension(680, 40));
         message.setFont(new Font("Arial", Font.PLAIN, 16));
         message.setForeground(color);
+        win.addKeyListener(this);
         message.addKeyListener(this);
         btn.addActionListener(this);
         win.add(pn[1], BorderLayout.SOUTH);
@@ -117,16 +118,24 @@ public class frame implements ActionListener, KeyListener {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                JLabel label = new JLabel();
                 while (socket.isConnected()) {
                     try {
                         tmp = bufferedReader.readLine().split("/");
                         clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
-                        JLabel label = new JLabel(tmp[1]);
+                        label = new JLabel(tmp[1]);
                         label.setFont(new Font("Arial", Font.PLAIN, 14));
                         label.setForeground(clientColor);
                         listm.add(label);
                         displayMsg();
                     } catch (Exception e) {
+                        server = -1;
+                        label = new JLabel("The server will be shut down. Prepare to re-run the program. Press Enter to continue");
+                        label.setFont(new Font("Arial", Font.PLAIN, 14));
+                        label.setForeground(Color.RED);
+                        listm.add(label);
+                        displayMsg();
+                        while (server == -1) {System.out.print("");}
                         closeAll(socket, bufferedReader, bufferedWriter);
                     }
                 }
@@ -154,7 +163,7 @@ public class frame implements ActionListener, KeyListener {
                     closeAll(socket, bufferedReader, bufferedWriter);
                 }
             }
-            else
+            else if ((message.getText().length() > 116))
                 JOptionPane.showMessageDialog(null, "Message too long", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -174,13 +183,15 @@ public class frame implements ActionListener, KeyListener {
                 GetJson.changeServer('n');
                 System.exit(0);
             }
-            else
+            if (server == -1) {
+                server = 0;
+            }
+            else if ((message.getText().length() > 116)) 
                 JOptionPane.showMessageDialog(null, "Message too long", "Error", JOptionPane.ERROR_MESSAGE);
         }
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             if (server == 2) {
                 try {
-                    //send("Neverming, the host change is mind.");
                     JLabel label = new JLabel("You cancel your action.");
                     label.setFont(new Font("Arial", Font.PLAIN, 14));
                     label.setForeground(Color.RED);
@@ -196,7 +207,6 @@ public class frame implements ActionListener, KeyListener {
         try {
             if (message.equals("/quit")) {
                 if (server == 1) {
-                    //send("The server will shut down. Prepare to re-run the program.");
                     JLabel label = new JLabel("You're hosting the server, if your quitting everyone will be disconnected. Press Enter to confirm or Escape to cancel");
                     label.setFont(new Font("Arial", Font.PLAIN, 14));
                     label.setForeground(Color.RED);
@@ -234,6 +244,7 @@ public class frame implements ActionListener, KeyListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        System.exit(0);
     }
 
     public void keyTyped(KeyEvent e) {}
