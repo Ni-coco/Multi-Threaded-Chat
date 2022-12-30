@@ -18,7 +18,7 @@ public class ClientHandler extends Thread {
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
             this.clientUsername = bufferedReader.readLine();
             clientHandlers.add(this);
-            broadcast(clientUsername + " a rejoint le serveur!");
+            broadcast(clientUsername + " has join the chat!", "0");
         } catch (Exception e) {
             closeAll(socket, bufferedReader, bufferedWriter);
         }
@@ -29,8 +29,15 @@ public class ClientHandler extends Thread {
         while (socket.isConnected()) {
             try {
                 message = bufferedReader.readLine();
-                broadcast(message);
+                if (message.contains("µ") && message.split("µ")[1].split(":")[1].charAt(1) == '/') {
+                    String[] whisper = message.split("µ")[1].split(":")[1].substring(2).substring(0).split(" ", 2); //destinataire et message
+                    if (String.join("", clientHandlers.get(0).getAllUsername()).contains(whisper[0]));
+                        broadcast(message.split(":")[0] + " to you: " + whisper[1], whisper[0]);
+                }
+                else
+                    broadcast(message, "0");
             } catch (Exception e) {
+                e.printStackTrace();
                 closeAll(socket, bufferedReader, bufferedWriter);
                 break;
             }
@@ -41,7 +48,7 @@ public class ClientHandler extends Thread {
         try {
             clientHandlers.remove(this);
             if (dummy == 1)
-                broadcast(clientUsername + " a quitté le serveur!");
+                broadcast(clientUsername + " has left the chat!", "0");
             dummy = 0;
             if (bufferedReader != null)
                 bufferedReader.close();
@@ -54,15 +61,28 @@ public class ClientHandler extends Thread {
         }
     }
 
-    public void broadcast(String message) {
+    public void broadcast(String message, String user) {
         for (ClientHandler list : clientHandlers) {
-            try {
-                list.bufferedWriter.write(message);
-                list.bufferedWriter.newLine();
-                list.bufferedWriter.flush();
-            } catch (Exception e) {
-                closeAll(socket, bufferedReader, bufferedWriter);
+            if (user == "0" || user.equals(list.clientUsername.split("µ")[1])) {
+                try {
+                    list.bufferedWriter.write(message);
+                    list.bufferedWriter.newLine();
+                    list.bufferedWriter.flush();
+                } catch (Exception e) {
+                    closeAll(socket, bufferedReader, bufferedWriter);
+                }
             }
         }
+    }
+
+    public String getUsername () {
+        return clientUsername.split("µ")[1];
+    }
+
+    public String getAllUsername() {
+        String str = "";
+        for (int i = 0; i < clientHandlers.size(); i++)
+            str += clientHandlers.get(i).getUsername();
+        return str;
     }
 }
