@@ -17,8 +17,13 @@ public class frame implements ActionListener, KeyListener {
     private List<String> listofUser = new ArrayList<String>();
     private JFrame win = new JFrame();
     private JMenuBar menuBar = new JMenuBar();
-    private JMenu connect = new JMenu("En ligne");
-    private JMenuItem item = new JMenuItem();
+    private JMenu connectMenu = new JMenu("En ligne");
+    private JMenu helpMenu = new JMenu("Help");
+    private JMenu clientMenu = new JMenu();
+    private JMenuItem clientItem = new JMenuItem();
+    private JMenuItem helpItemuser = new JMenuItem("/user");
+    private JMenuItem helpItemquit = new JMenuItem("/quit");
+    private JMenuItem disconnect = new JMenuItem("Disconnect");
     private JPanel pn[] = new JPanel[2];
     private JTextField message = new JTextField();
     private JButton btn = new JButton("Envoyer");
@@ -69,7 +74,21 @@ public class frame implements ActionListener, KeyListener {
         win.setLayout(new BorderLayout());
 
         menuBar.setBackground(Color.BLACK);
-        menuBar.add(connect);
+        menuBar.add(connectMenu);
+        helpItemuser.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+        helpItemquit.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+        helpItemuser.addActionListener(this);
+        helpItemquit.addActionListener(this);
+        helpMenu.add(helpItemuser);
+        helpMenu.add(helpItemquit);
+        menuBar.add(helpMenu);
+        clientMenu.setText(clientUsername);
+        clientMenu.setIcon(co);
+        clientMenu.setIconTextGap(1);
+        disconnect.addActionListener(this);
+        disconnect.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+        clientMenu.add(disconnect);
+        menuBar.add(clientMenu);
         win.setJMenuBar(menuBar);
 
         pn[0] = new JPanel();
@@ -132,12 +151,12 @@ public class frame implements ActionListener, KeyListener {
     }
 
     public void displayConnected () {
-        connect.removeAll();
+        connectMenu.removeAll();
         for (int i = 0; i < listofUser.size(); i++) {
-            item = new JMenuItem();
-            item.setText(listofUser.get(i));
-            item.setIcon(co);
-            connect.add(item);
+            clientItem = new JMenuItem();
+            clientItem.setText(listofUser.get(i));
+            clientItem.setIcon(co);
+            connectMenu.add(clientItem);
         }
     }
 
@@ -172,7 +191,7 @@ public class frame implements ActionListener, KeyListener {
                             }
                             else if (server == 1 && String.join("", listofUser).contains(str) && tmp[1].contains("has left the chat!")) {
                                 listofUser.remove(str);
-                                connect.removeAll();
+                                connectMenu.removeAll();
                                 setConnected();
                             }
                         }
@@ -249,6 +268,15 @@ public class frame implements ActionListener, KeyListener {
             else if ((message.getText().length() > 116))
                 JOptionPane.showMessageDialog(null, "Message too long", "Error", JOptionPane.ERROR_MESSAGE);
         }
+        if (e.getSource() == disconnect) {
+            cmd("/quit");
+        }
+        if (e.getSource() == helpItemuser) {
+            JOptionPane.showMessageDialog(null, "Use it to send a private message to a user who's connected.\n/user msg.", "Information", JOptionPane.INFORMATION_MESSAGE);
+        }
+        if (e.getSource() == helpItemquit) {
+            JOptionPane.showMessageDialog(null, "Use it to quit the program.\nIf you're hosting the server a confirm action will be asked.", "Information", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 
     @Override
@@ -297,7 +325,8 @@ public class frame implements ActionListener, KeyListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        GetJson.changeServer('n');
+        if (server == 1)
+            GetJson.changeServer('n');
         System.exit(0);
     }
 
