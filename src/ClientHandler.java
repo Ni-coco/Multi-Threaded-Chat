@@ -29,13 +29,14 @@ public class ClientHandler extends Thread {
         while (socket.isConnected()) {
             try {
                 message = bufferedReader.readLine();
-                if (message.contains("µ") && message.split("µ")[1].split(":")[1].charAt(1) == '/') {
-                    String[] whisper = message.split("µ")[1].split(":")[1].substring(2).substring(0).split(" ", 2); //destinataire et message
-                    if (String.join("", clientHandlers.get(0).getAllUsername()).contains(whisper[0]));
+                if (message != null) {
+                    if (message.contains(":") && message.split("µ", 2)[1].split(":", 2)[1].substring(1).contains(" ") && check_PrivateMsg(message.split("µ", 2)[1].split(":", 2)[1].substring(1).split(" ", 2)[0])) {
+                        String[] whisper = message.split("µ")[1].split(":")[1].substring(2).substring(0).split(" ", 2); //destinataire et message
                         broadcast(message.split(":")[0] + " to you: " + whisper[1], whisper[0]);
+                    }
+                    else
+                        broadcast(message, "0");
                 }
-                else
-                    broadcast(message, "0");
             } catch (Exception e) {
                 e.printStackTrace();
                 closeAll(socket, bufferedReader, bufferedWriter);
@@ -44,21 +45,12 @@ public class ClientHandler extends Thread {
         }
     } 
 
-    public void closeAll (Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
-        try {
-            clientHandlers.remove(this);
-            if (dummy == 1)
-                broadcast(clientUsername + " has left the chat!", "0");
-            dummy = 0;
-            if (bufferedReader != null)
-                bufferedReader.close();
-            if (bufferedWriter != null)
-                bufferedWriter.close();
-            if (socket != null)
-                socket.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+    public boolean check_PrivateMsg(String str) {
+        for (int i = 0; i < clientHandlers.size(); i++) {
+            if (str.equals("/" + clientHandlers.get(i).getUsername()) && !str.equals(clientUsername))
+                return true;
         }
+        return false;
     }
 
     public void broadcast(String message, String user) {
@@ -79,10 +71,20 @@ public class ClientHandler extends Thread {
         return clientUsername.split("µ")[1];
     }
 
-    public String getAllUsername() {
-        String str = "";
-        for (int i = 0; i < clientHandlers.size(); i++)
-            str += clientHandlers.get(i).getUsername();
-        return str;
+    public void closeAll (Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+        try {
+            clientHandlers.remove(this);
+            if (dummy == 1)
+                broadcast(clientUsername + " has left the chat!", "0");
+            dummy = 0;
+            if (bufferedReader != null)
+                bufferedReader.close();
+            if (bufferedWriter != null)
+                bufferedWriter.close();
+            if (socket != null)
+                socket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

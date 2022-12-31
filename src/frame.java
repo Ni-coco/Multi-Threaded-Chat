@@ -68,7 +68,7 @@ public class frame implements ActionListener, KeyListener {
 
     public void setFrame() {
         win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        win.setSize(new Dimension(1080, 720));
+        win.setSize(new Dimension(720, 480));
         win.setVisible(true);
         win.getContentPane().setBackground(new Color(60, 63, 65));
         win.setLayout(new BorderLayout());
@@ -129,7 +129,7 @@ public class frame implements ActionListener, KeyListener {
             bufferedWriter.newLine();
             bufferedWriter.flush();
         } catch (Exception e) {
-            e.printStackTrace();
+            closeAll(socket, bufferedReader, bufferedWriter);
         }
     }
 
@@ -169,41 +169,37 @@ public class frame implements ActionListener, KeyListener {
                 while (socket.isConnected()) {
                     try {
                         str = bufferedReader.readLine();
-                        if (server != 1 && str.contains("§")) {
-                            tmp = str.split("§");
-                            listofUser.clear();
-                            for (int i = 0; i < tmp.length; i++)
-                                listofUser.add(tmp[i]);
-                            displayConnected();
-                        }
-                        else if (str.contains("µ")) {
-                            tmp = str.split("µ");
-                            clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
-                            label = new JLabel(tmp[1]);
-                            label.setFont(new Font("Arial", Font.PLAIN, 14));
-                            label.setForeground(clientColor);
-                            listm.add(label);
-                            displayMsg();
-                            str = tmp[1].substring(0,tmp[1].indexOf(" "));
-                            if (server == 1 && !String.join("", listofUser).contains(str) && tmp[1].contains("has join the chat!")) {
-                                listofUser.add(str);
-                                setConnected();
+                        if (str != null) {
+                            if (server != 1 && str.contains("§")) {
+                                tmp = str.split("§");
+                                listofUser.clear();
+                                for (int i = 0; i < tmp.length; i++)
+                                    listofUser.add(tmp[i]);
+                                displayConnected();
                             }
-                            else if (server == 1 && String.join("", listofUser).contains(str) && tmp[1].contains("has left the chat!")) {
-                                listofUser.remove(str);
-                                connectMenu.removeAll();
-                                setConnected();
+                            else if (str.contains("µ")) {
+                                tmp = str.split("µ");
+                                clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
+                                label = new JLabel(tmp[1]);
+                                label.setFont(new Font("Arial", Font.PLAIN, 14));
+                                label.setForeground(clientColor);
+                                listm.add(label);
+                                displayMsg();
+                                str = tmp[1].substring(0,tmp[1].indexOf(" "));
+                                if (server == 1 && !String.join("", listofUser).contains(str) && tmp[1].contains("has join the chat!")) {
+                                    listofUser.add(str);
+                                    setConnected();
+                                }
+                                else if (server == 1 && String.join("", listofUser).contains(str) && tmp[1].contains("has left the chat!")) {
+                                    listofUser.remove(str);
+                                    connectMenu.removeAll();
+                                    setConnected();
+                                }
                             }
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        server = -1;
-                        label = new JLabel("The server will be shut down. Prepare to re-run the program. Press Enter to continue");
-                        label.setFont(new Font("Arial", Font.PLAIN, 14));
-                        label.setForeground(Color.RED);
-                        listm.add(label);
-                        displayMsg();
-                        while (server == -1) {System.out.print("");}
+                    } catch (IOException e) {
+                        if (server == 0)
+                            JOptionPane.showConfirmDialog(null, "The server will be shut down. Prepare to re-run the program.", "", JOptionPane.CLOSED_OPTION);
                         closeAll(socket, bufferedReader, bufferedWriter);
                     }
                 }
@@ -227,31 +223,58 @@ public class frame implements ActionListener, KeyListener {
         return Integer.toString(color.getRed()) + " " + Integer.toString(color.getGreen()) + " " + Integer.toString(color.getBlue());
     }
 
+    public String getAllUser() {
+        String str = "";
+        for (int i = 0; i < listofUser.size(); i++)
+            str += "/" + listofUser.get(i);
+        return str;
+    }
+
     public void cmd(String message) {
         try {
-            if (message.charAt(0) == '/' && message.substring(1).equals("quit")) {
-                if (server == 1) {
-                    JLabel label = new JLabel("You're hosting the server, if your quitting everyone will be disconnected. Press Enter to confirm or Escape to cancel");
-                    label.setFont(new Font("Arial", Font.PLAIN, 14));
-                    label.setForeground(Color.RED);
-                    listm.add(label);
-                    displayMsg();
-                    server = 2;
+            if (message.charAt(0) == '/') {
+                if (message.substring(0).equals("/quit")) {
+                    if (server == 1) {
+                        int res = JOptionPane.showConfirmDialog(null, "You're hosting the server, if your quitting everyone will be disconnected.\nAre you sure you want to be disconnected?", "Confirm", JOptionPane.YES_NO_OPTION);
+                        if (res == JOptionPane.YES_OPTION) {
+                            closeAll(socket, bufferedReader, bufferedWriter);
+                        }
+                    }
+                    else {
+                        int res = JOptionPane.showConfirmDialog(null, "Are you sure you want to be disconnected?", "Confirm", JOptionPane.YES_NO_OPTION);
+                        if (res == JOptionPane.YES_OPTION) {
+                            closeAll(socket, bufferedReader, bufferedWriter);
+                        }
+                    }
+                }
+                else if (message.contains(" ") && checkUser(message.split(" ", 2)[0])) {
+                    send(getColor() + "µ" + clientUsername + ": " + message);
+                    setLabel("to " + message.substring(1, message.indexOf(' ')) + ": " + message.substring(message.indexOf(' ')), color);
                 }
                 else
-                    System.exit(0);
-            }
-            else if (message.charAt(0) == '/' && String.join("", listofUser).contains(message.substring(1, message.indexOf(' ')))) {
-                send(getColor() + "µ" + clientUsername + ": " + message);
-                JLabel label = new JLabel("to " + message.substring(1, message.indexOf(' ')) + ": " + message.substring(message.indexOf(' ')));
-                label.setFont(new Font("Arial", Font.PLAIN, 14));
-                label.setForeground(color);
-                listm.add(label);
-                displayMsg();
+                    setLabel("You probably misswrite your command. Please try again", Color.RED);
             }
             else
                 send(getColor() + "µ" + clientUsername + ": " + message);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            closeAll(socket, bufferedReader, bufferedWriter);
+        }
+    }
+
+    public boolean checkUser(String str) {
+        for (int i = 0; i < listofUser.size(); i++) {
+            if (str.equals("/" + listofUser.get(i)) && !str.equals(clientUsername))
+                return true;
+        }
+        return false;
+    }
+
+    public void setLabel(String str, Color color) {
+        JLabel label = new JLabel(str);
+        label.setFont(new Font("Arial", Font.PLAIN, 14));
+        label.setForeground(color);
+        listm.add(label);
+        displayMsg();
     }
 
     @Override
@@ -290,43 +313,24 @@ public class frame implements ActionListener, KeyListener {
                     closeAll(socket, bufferedReader, bufferedWriter);
                 }
             }
-            else if (server == 2) {
-                GetJson.changeServer('n');
-                System.exit(0);
-            }
-            if (server == -1) {
-                server = 0;
-            }
             else if ((message.getText().length() > 116)) 
                 JOptionPane.showMessageDialog(null, "Message too long", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-            if (server == 2) {
-                try {
-                    JLabel label = new JLabel("You cancel your action.");
-                    label.setFont(new Font("Arial", Font.PLAIN, 14));
-                    label.setForeground(Color.RED);
-                    listm.add(label);
-                    displayMsg();
-                    server = 1;
-                } catch (Exception a) {}
-            }
         }
     }
 
     public void closeAll (Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+        if (server == 1)
+                GetJson.changeServer('n');
         try {
+            if (socket != null)
+                socket.close();
             if (bufferedReader != null)
                 bufferedReader.close();
             if (bufferedWriter != null)
                 bufferedWriter.close();
-            if (socket != null)
-                socket.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (server == 1)
-            GetJson.changeServer('n');
         System.exit(0);
     }
 
