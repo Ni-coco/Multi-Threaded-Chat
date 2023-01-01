@@ -3,7 +3,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 
 public class Chat {
     public static void main(String[] args) {
-        int server = 0;
+        int server = -1;
         try {
             if (!GetJson.getRun()) {
                 ServerSocket serverSocket = new ServerSocket(8888);

@@ -37,8 +37,12 @@ public class ClientHandler extends Thread {
                     }
                     else
                         broadcast(message, "0");
+                    if (message.contains("µ") && message.split("µ", 2)[1].equals(clientUsername.split("µ")[1] + " changed their color")) {
+                        clientUsername = message.substring(0, message.indexOf("µ") + 1) + clientUsername.split("µ")[1];
+                    }
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 break;
             }
         }

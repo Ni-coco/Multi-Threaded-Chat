@@ -140,11 +140,7 @@ public class frame implements ActionListener, KeyListener {
                                 clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
                                 if (tmp[1].split(" ", 2)[1].equals("changed their color"))
                                     setChangedColor(tmp[1].split(" ", 2)[0], clientColor);
-                                label = new JLabel(tmp[1]);
-                                label.setFont(new Font("Arial", Font.PLAIN, 14));
-                                label.setForeground(clientColor);
-                                listm.add(label);
-                                displayMsg();
+                                setLabel(tmp[1], clientColor);
                                 str = tmp[1].substring(0,tmp[1].indexOf(" "));
                                 if (server == 1 && !String.join("", listofUser).contains(str) && tmp[1].contains("has join the chat!")) {
                                     listofUser.add(str);
