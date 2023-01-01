@@ -45,14 +45,6 @@ public class ClientHandler extends Thread {
         closeAll(socket, bufferedReader, bufferedWriter);
     } 
 
-    public boolean check_PrivateMsg(String str) {
-        for (int i = 0; i < clientHandlers.size(); i++) {
-            if (str.equals("/" + clientHandlers.get(i).getUsername()) && !str.equals(clientUsername))
-                return true;
-        }
-        return false;
-    }
-
     public void broadcast(String message, String user) {
         for (ClientHandler list : clientHandlers) {
             if ((user.equals("0") || user.equals(list.clientUsername.split("µ")[1]))) {
@@ -65,6 +57,14 @@ public class ClientHandler extends Thread {
                 }
             }
         }
+    }
+
+    public boolean check_PrivateMsg(String str) {
+        for (int i = 0; i < clientHandlers.size(); i++) {
+            if (str.equals("/" + clientHandlers.get(i).getUsername()) && !str.equals(clientUsername))
+                return true;
+        }
+        return false;
     }
 
     public String getUsername () {

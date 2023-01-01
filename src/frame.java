@@ -22,6 +22,7 @@ public class frame implements ActionListener, KeyListener {
     private JMenu clientMenu = new JMenu();
     private JMenuItem clientItem = new JMenuItem();
     private JMenuItem helpItemuser = new JMenuItem("/user");
+    private JMenuItem helpItemcolor = new JMenuItem("/color");
     private JMenuItem helpItemquit = new JMenuItem("/quit");
     private JMenuItem disconnect = new JMenuItem("Disconnect");
     private JPanel pn[] = new JPanel[2];
@@ -75,10 +76,13 @@ public class frame implements ActionListener, KeyListener {
 
         menuBar.setBackground(Color.BLACK);
         menuBar.add(connectMenu);
+        helpItemcolor.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         helpItemuser.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         helpItemquit.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+        helpItemcolor.addActionListener(this);
         helpItemuser.addActionListener(this);
         helpItemquit.addActionListener(this);
+        helpMenu.add(helpItemcolor);
         helpMenu.add(helpItemuser);
         helpMenu.add(helpItemquit);
         menuBar.add(helpMenu);
@@ -114,52 +118,6 @@ public class frame implements ActionListener, KeyListener {
         win.add(pn[1], BorderLayout.SOUTH);
     }
 
-    public void sendEntered() {
-        try {
-            send(getColor() + "µ" + clientUsername);
-        } catch (Exception e) {
-            e.printStackTrace();
-            closeAll(socket, bufferedReader, bufferedWriter);
-        }
-    }
-
-    public void send(String msg) {
-        try {
-            bufferedWriter.write(msg);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
-        } catch (Exception e) {
-            closeAll(socket, bufferedReader, bufferedWriter);
-        }
-    }
-
-    public void displayMsg() {
-        GridBagConstraints cstr = new GridBagConstraints();
-        cstr.insets = new Insets(0, 10, 10, 0);
-        cstr.gridy = gridy;
-        cstr.weightx = 1;
-        cstr.anchor = GridBagConstraints.WEST;
-        pn[0].add(listm.get(gridy), cstr);
-        gridy++;
-        pn[0].revalidate();
-        pn[0].repaint();
-    }
-
-    public void setConnected() {
-        send(String.join("§", listofUser));
-        displayConnected();
-    }
-
-    public void displayConnected () {
-        connectMenu.removeAll();
-        for (int i = 0; i < listofUser.size(); i++) {
-            clientItem = new JMenuItem();
-            clientItem.setText(listofUser.get(i));
-            clientItem.setIcon(co);
-            connectMenu.add(clientItem);
-        }
-    }
-
     public void listen() {
         new Thread(new Runnable() {
             @Override
@@ -177,9 +135,11 @@ public class frame implements ActionListener, KeyListener {
                                     listofUser.add(tmp[i]);
                                 displayConnected();
                             }
-                            else if (str.contains("µ")) {
+                            else if (str.contains("µ") && !str.split("µ")[1].equals(clientUsername + " changed their color")) {
                                 tmp = str.split("µ");
                                 clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
+                                if (tmp[1].split(" ", 2)[1].equals("changed their color"))
+                                    setChangedColor(tmp[1].split(" ", 2)[0], clientColor);
                                 label = new JLabel(tmp[1]);
                                 label.setFont(new Font("Arial", Font.PLAIN, 14));
                                 label.setForeground(clientColor);
@@ -205,6 +165,66 @@ public class frame implements ActionListener, KeyListener {
                 }
             }
         }).start();
+    }
+
+    public void cmd(String msg) {
+        try {
+            if (msg.charAt(0) == '/') {
+                if (msg.substring(0).equals("/quit")) {
+                    if (server == 1) {
+                        int res = JOptionPane.showConfirmDialog(null, "You're hosting the server, if your quitting everyone will be disconnected.\nAre you sure you want to be disconnected?", "Confirm", JOptionPane.YES_NO_OPTION);
+                        if (res == JOptionPane.YES_OPTION) {
+                            closeAll(socket, bufferedReader, bufferedWriter);
+                        }
+                    }
+                    else {
+                        int res = JOptionPane.showConfirmDialog(null, "Are you sure you want to be disconnected?", "Confirm", JOptionPane.YES_NO_OPTION);
+                        if (res == JOptionPane.YES_OPTION) {
+                            System.exit(0);
+                        }
+                    }
+                }
+                else if (msg.contains(" ") && checkUser(msg.split(" ", 2)[0]) && !msg.split(" ", 2)[0].substring(1).equals(clientUsername)) {
+                    send(getColor() + "µ" + clientUsername + ": " + msg);
+                    setLabel("to " + msg.substring(1, msg.indexOf(' ')) + ": " + msg.substring(msg.indexOf(' ')), color);
+                }
+                else if (msg.substring(0).equals("/color")) {
+                    this.color = getRGB();
+                    message.setForeground(color);
+                    setLabel("You changed your color", color);
+                    setChangedColor(clientUsername, color);
+                    send(getColor() + "µ" + clientUsername + " changed their color");
+                }
+                else
+                    setLabel("You probably misswrite your command. Please try again", Color.RED);
+            }
+            else
+                send(getColor() + "µ" + clientUsername + ": " + msg);
+        } catch (Exception e) { 
+            closeAll(socket, bufferedReader, bufferedWriter);
+        }
+    }
+
+    public void displayMsg() {
+        GridBagConstraints cstr = new GridBagConstraints();
+        cstr.insets = new Insets(0, 10, 10, 0);
+        cstr.gridy = gridy;
+        cstr.weightx = 1;
+        cstr.anchor = GridBagConstraints.WEST;
+        pn[0].add(listm.get(gridy), cstr);
+        gridy++;
+        pn[0].revalidate();
+        pn[0].repaint();
+    }
+
+    public void displayConnected () {
+        connectMenu.removeAll();
+        for (int i = 0; i < listofUser.size(); i++) {
+            clientItem = new JMenuItem();
+            clientItem.setText(listofUser.get(i));
+            clientItem.setIcon(co);
+            connectMenu.add(clientItem);
+        }
     }
 
     public String getUsername() {
@@ -234,33 +254,49 @@ public class frame implements ActionListener, KeyListener {
         return str;
     }
 
-    public void cmd(String message) {
+    public void setConnected() {
+        send(String.join("§", listofUser));
+        displayConnected();
+    }
+
+    public void setChangedColor(String user, Color color) {
+        String str = "";
+        for (int i = 0; i < listm.size(); i++) {
+            str = listm.get(i).getText();
+            if (str.substring(0, listm.get(i).getText().indexOf(" ")).equals(user + ":"))
+                listm.get(i).setForeground(color);
+            else if (str.equals(user + " has join the chat!"))
+                listm.get(i).setForeground(color);
+            else if (str.split(":", 2)[0].equals(user + " to you"))
+                listm.get(i).setForeground(color);
+            else if (str.substring(0, 3).equals("to "))
+                listm.get(i).setForeground(color);
+        }
+    }
+
+    public void setLabel(String str, Color color) {
+        JLabel label = new JLabel(str);
+        label.setFont(new Font("Arial", Font.PLAIN, 14));
+        label.setForeground(color);
+        listm.add(label);
+        displayMsg();
+    }
+
+    public void sendEntered() {
         try {
-            if (message.charAt(0) == '/') {
-                if (message.substring(0).equals("/quit")) {
-                    if (server == 1) {
-                        int res = JOptionPane.showConfirmDialog(null, "You're hosting the server, if your quitting everyone will be disconnected.\nAre you sure you want to be disconnected?", "Confirm", JOptionPane.YES_NO_OPTION);
-                        if (res == JOptionPane.YES_OPTION) {
-                            closeAll(socket, bufferedReader, bufferedWriter);
-                        }
-                    }
-                    else {
-                        int res = JOptionPane.showConfirmDialog(null, "Are you sure you want to be disconnected?", "Confirm", JOptionPane.YES_NO_OPTION);
-                        if (res == JOptionPane.YES_OPTION) {
-                            System.exit(0);
-                        }
-                    }
-                }
-                else if (message.contains(" ") && checkUser(message.split(" ", 2)[0]) && !message.split(" ", 2)[0].substring(1).equals(clientUsername)) {
-                    send(getColor() + "µ" + clientUsername + ": " + message);
-                    setLabel("to " + message.substring(1, message.indexOf(' ')) + ": " + message.substring(message.indexOf(' ')), color);
-                }
-                else
-                    setLabel("You probably misswrite your command. Please try again", Color.RED);
-            }
-            else
-                send(getColor() + "µ" + clientUsername + ": " + message);
-        } catch (Exception e) { 
+            send(getColor() + "µ" + clientUsername);
+        } catch (Exception e) {
+            e.printStackTrace();
+            closeAll(socket, bufferedReader, bufferedWriter);
+        }
+    }
+
+    public void send(String msg) {
+        try {
+            bufferedWriter.write(msg);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+        } catch (Exception e) {
             closeAll(socket, bufferedReader, bufferedWriter);
         }
     }
@@ -273,12 +309,20 @@ public class frame implements ActionListener, KeyListener {
         return false;
     }
 
-    public void setLabel(String str, Color color) {
-        JLabel label = new JLabel(str);
-        label.setFont(new Font("Arial", Font.PLAIN, 14));
-        label.setForeground(color);
-        listm.add(label);
-        displayMsg();
+    public void closeAll (Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+        if (server == 1)
+                GetJson.changeServer('n');
+        try {
+            if (socket != null)
+                socket.close();
+            if (bufferedReader != null)
+                bufferedReader.close();
+            if (bufferedWriter != null)
+                bufferedWriter.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.exit(0);
     }
 
     @Override
@@ -297,6 +341,9 @@ public class frame implements ActionListener, KeyListener {
         }
         if (e.getSource() == disconnect) {
             cmd("/quit");
+        }
+        if (e.getSource() == helpItemcolor) {
+            JOptionPane.showMessageDialog(null, "Use it to change the color of your message", "Information", JOptionPane.INFORMATION_MESSAGE);
         }
         if (e.getSource() == helpItemuser) {
             JOptionPane.showMessageDialog(null, "Use it to send a private message to a user who's connected.\n/user msg.", "Information", JOptionPane.INFORMATION_MESSAGE);
@@ -320,22 +367,6 @@ public class frame implements ActionListener, KeyListener {
             else if ((message.getText().length() > 116)) 
                 JOptionPane.showMessageDialog(null, "Message too long", "Error", JOptionPane.ERROR_MESSAGE);
         }
-    }
-
-    public void closeAll (Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
-        if (server == 1)
-                GetJson.changeServer('n');
-        try {
-            if (socket != null)
-                socket.close();
-            if (bufferedReader != null)
-                bufferedReader.close();
-            if (bufferedWriter != null)
-                bufferedWriter.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        System.exit(0);
     }
 
     public void keyTyped(KeyEvent e) {}
