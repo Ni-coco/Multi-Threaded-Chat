@@ -42,14 +42,14 @@ public class frame implements ActionListener, KeyListener {
 
     public frame (int aserver) {
         try {
-            this.clientUsername = getUsername();
-            setFrame();
-            win.setVisible(true);
             this.socket = new Socket(ip, 8888);
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
             this.server = aserver;
             listen();
+            this.clientUsername = getUsername();
+            setFrame();
+            win.setVisible(true);
             sendEntered();
             if (aserver == 1) {
                 win.addWindowListener(new WindowAdapter() {
@@ -208,7 +208,11 @@ public class frame implements ActionListener, KeyListener {
     }
 
     public String getUsername() {
-        return JOptionPane.showInputDialog("Enter your username."); 
+        String tmp = JOptionPane.showInputDialog("Enter your username."); 
+        /*while (checkUser(tmp)) {
+            tmp = JOptionPane.showInputDialog("The username is already in use");
+        }*/
+        return tmp;
     }
 
     public Color getRGB() {
@@ -243,11 +247,11 @@ public class frame implements ActionListener, KeyListener {
                     else {
                         int res = JOptionPane.showConfirmDialog(null, "Are you sure you want to be disconnected?", "Confirm", JOptionPane.YES_NO_OPTION);
                         if (res == JOptionPane.YES_OPTION) {
-                            closeAll(socket, bufferedReader, bufferedWriter);
+                            System.exit(0);
                         }
                     }
                 }
-                else if (message.contains(" ") && checkUser(message.split(" ", 2)[0])) {
+                else if (message.contains(" ") && checkUser(message.split(" ", 2)[0]) && !message.split(" ", 2)[0].substring(1).equals(clientUsername)) {
                     send(getColor() + "µ" + clientUsername + ": " + message);
                     setLabel("to " + message.substring(1, message.indexOf(' ')) + ": " + message.substring(message.indexOf(' ')), color);
                 }
@@ -256,7 +260,7 @@ public class frame implements ActionListener, KeyListener {
             }
             else
                 send(getColor() + "µ" + clientUsername + ": " + message);
-        } catch (Exception e) {
+        } catch (Exception e) { 
             closeAll(socket, bufferedReader, bufferedWriter);
         }
     }

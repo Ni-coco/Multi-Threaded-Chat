@@ -20,6 +20,7 @@ public class ClientHandler extends Thread {
             clientHandlers.add(this);
             broadcast(clientUsername + " has join the chat!", "0");
         } catch (Exception e) {
+            e.printStackTrace();
             closeAll(socket, bufferedReader, bufferedWriter);
         }
     }
@@ -38,11 +39,10 @@ public class ClientHandler extends Thread {
                         broadcast(message, "0");
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-                closeAll(socket, bufferedReader, bufferedWriter);
                 break;
             }
         }
+        closeAll(socket, bufferedReader, bufferedWriter);
     } 
 
     public boolean check_PrivateMsg(String str) {
@@ -55,7 +55,7 @@ public class ClientHandler extends Thread {
 
     public void broadcast(String message, String user) {
         for (ClientHandler list : clientHandlers) {
-            if (user == "0" || user.equals(list.clientUsername.split("µ")[1])) {
+            if ((user.equals("0") || user.equals(list.clientUsername.split("µ")[1]))) {
                 try {
                     list.bufferedWriter.write(message);
                     list.bufferedWriter.newLine();
@@ -74,8 +74,9 @@ public class ClientHandler extends Thread {
     public void closeAll (Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
         try {
             clientHandlers.remove(this);
-            if (dummy == 1)
+            if (dummy == 1) {
                 broadcast(clientUsername + " has left the chat!", "0");
+            }
             dummy = 0;
             if (bufferedReader != null)
                 bufferedReader.close();
