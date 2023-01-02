@@ -10,15 +10,18 @@ public class ClientHandler extends Thread {
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private int dummy = 1;
+    private int tmp;
 
-    public ClientHandler (Socket asocket) {
+    public ClientHandler(Socket asocket, int i) {
         try {
             this.socket = asocket;
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
             this.clientUsername = bufferedReader.readLine();
             clientHandlers.add(this);
-            broadcast(clientUsername + " has join the chat!", "0");
+            this.tmp = i;
+            broadcast(clientUsername + " has join the chat!", clientUsername.split("µ")[1], tmp);
+            tmp = 0;
         } catch (Exception e) {
             e.printStackTrace();
             closeAll(socket, bufferedReader, bufferedWriter);
@@ -33,10 +36,10 @@ public class ClientHandler extends Thread {
                 if (message != null) {
                     if (message.contains(":") && message.split("µ", 2)[1].split(":", 2)[1].substring(1).contains(" ") && check_PrivateMsg(message.split("µ", 2)[1].split(":", 2)[1].substring(1).split(" ", 2)[0])) {
                         String[] whisper = message.split("µ")[1].split(":")[1].substring(2).substring(0).split(" ", 2); //destinataire et message
-                        broadcast(message.split(":")[0] + " to you: " + whisper[1], whisper[0]);
+                        broadcast(message.split(":")[0] + " to you: " + whisper[1], whisper[0], 1);
                     }
                     else
-                        broadcast(message, "0");
+                        broadcast(message, "0", 1);
                     if (message.contains("µ") && message.split("µ", 2)[1].equals(clientUsername.split("µ")[1] + " changed their color")) {
                         clientUsername = message.substring(0, message.indexOf("µ") + 1) + clientUsername.split("µ")[1];
                     }
@@ -47,17 +50,30 @@ public class ClientHandler extends Thread {
             }
         }
         closeAll(socket, bufferedReader, bufferedWriter);
-    } 
+    }
 
-    public void broadcast(String message, String user) {
+    public void broadcast(String message, String user, int i) {
         for (ClientHandler list : clientHandlers) {
-            if ((user.equals("0") || user.equals(list.clientUsername.split("µ")[1]))) {
-                try {
-                    list.bufferedWriter.write(message);
-                    list.bufferedWriter.newLine();
-                    list.bufferedWriter.flush();
-                } catch (Exception e) {
-                    closeAll(socket, bufferedReader, bufferedWriter);
+            if (i == 0) {
+                if (!user.equals(list.clientUsername.split("µ")[1])) {
+                    try {
+                        list.bufferedWriter.write(message);
+                        list.bufferedWriter.newLine();
+                        list.bufferedWriter.flush();
+                    } catch (Exception e) {
+                        closeAll(socket, bufferedReader, bufferedWriter);
+                    }
+                }
+            }
+            else {
+                if ((user.equals("0") || user.equals(list.clientUsername.split("µ")[1]))) {
+                    try {
+                        list.bufferedWriter.write(message);
+                        list.bufferedWriter.newLine();
+                        list.bufferedWriter.flush();
+                    } catch (Exception e) {
+                        closeAll(socket, bufferedReader, bufferedWriter);
+                    }
                 }
             }
         }
@@ -79,7 +95,7 @@ public class ClientHandler extends Thread {
         try {
             clientHandlers.remove(this);
             if (dummy == 1) {
-                broadcast(clientUsername + " has left the chat!", "0");
+                broadcast(clientUsername + " has left the chat!", "0", 1);
             }
             dummy = 0;
             if (bufferedReader != null)

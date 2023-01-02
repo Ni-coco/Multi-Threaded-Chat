@@ -41,7 +41,7 @@ public class frame implements ActionListener, KeyListener {
     private String ip = GetJson.getIP();
     private int server;
 
-    public frame (int aserver) {
+    public frame(int aserver) {
         try {
             this.socket = new Socket(ip, 8888);
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
@@ -122,11 +122,20 @@ public class frame implements ActionListener, KeyListener {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                JLabel label = new JLabel();
                 String str;
                 while (socket.isConnected()) {
                     try {
                         str = bufferedReader.readLine();
+                        if (server == -1) {
+                            String[] tmp1 = str.split("//");
+                            for (int i = 1; i < tmp1.length; i++) {
+                                String[] tmp2 = tmp1[i].split("µ");
+                                clientColor = new Color(Integer.parseInt(tmp2[0].split(" ")[0]), Integer.parseInt(tmp2[0].split(" ")[1]), Integer.parseInt(tmp2[0].split(" ")[2]));
+                                setLabel(tmp2[1], clientColor);
+                            }
+                            server = 0;
+                        }
+
                         if (str != null) {
                             if (server != 1 && str.contains("§")) {
                                 tmp = str.split("§");
@@ -135,7 +144,7 @@ public class frame implements ActionListener, KeyListener {
                                     listofUser.add(tmp[i]);
                                 displayConnected();
                             }
-                            else if (str.contains("µ") && !str.split("µ")[1].equals(clientUsername + " changed their color")) {
+                            else if (str.contains("µ") && !str.split("µ")[1].equals(clientUsername + " changed their color") && !str.split(" ", 2)[0].equals("(MsgHistoric=)")) {
                                 tmp = str.split("µ");
                                 clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
                                 if (tmp[1].split(" ", 2)[1].equals("changed their color"))
@@ -144,6 +153,7 @@ public class frame implements ActionListener, KeyListener {
                                 str = tmp[1].substring(0,tmp[1].indexOf(" "));
                                 if (server == 1 && !String.join("", listofUser).contains(str) && tmp[1].contains("has join the chat!")) {
                                     listofUser.add(str);
+                                    sendPast();
                                     setConnected();
                                 }
                                 else if (server == 1 && String.join("", listofUser).contains(str) && tmp[1].contains("has left the chat!")) {
@@ -213,7 +223,7 @@ public class frame implements ActionListener, KeyListener {
         pn[0].repaint();
     }
 
-    public void displayConnected () {
+    public void displayConnected() {
         connectMenu.removeAll();
         for (int i = 0; i < listofUser.size(); i++) {
             clientItem = new JMenuItem();
@@ -287,6 +297,21 @@ public class frame implements ActionListener, KeyListener {
         }
     }
 
+    public void sendPast() {
+        String str = "(MsgHistoric=) //";
+        for (int i = 0; i < listm.size(); i++) {
+            if (!listm.get(i).getText().split(" ", 2)[0].equals("to") && !listm.get(i).getText().split(" ", 2)[1].split(":", 2)[0].equals("to you")) {
+                if (listm.get(i).getText().split(" ", 2)[0].equals("You")) {
+                    if (listm.get(i).getText().split(" ", 2)[1].charAt(0) == 'c')
+                        str += listm.get(i).getForeground().getRed() + " " + listm.get(i).getForeground().getGreen() + " " + listm.get(i).getForeground().getBlue() + "µ" + listm.get(0).getText().split(" ", 2)[0] + " changed their color//";
+                }
+                else
+                    str += listm.get(i).getForeground().getRed() + " " + listm.get(i).getForeground().getGreen() + " " + listm.get(i).getForeground().getBlue() + "µ" + listm.get(i).getText() + "//";
+            }
+        }
+        send(str);
+    }
+
     public void send(String msg) {
         try {
             bufferedWriter.write(msg);
@@ -305,7 +330,7 @@ public class frame implements ActionListener, KeyListener {
         return false;
     }
 
-    public void closeAll (Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+    public void closeAll(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
         if (server == 1)
                 GetJson.changeServer('n');
         try {

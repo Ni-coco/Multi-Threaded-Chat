@@ -8,17 +8,19 @@ public class Server extends Thread {
     }
 
     public void run() {
+        int i = 1;
         try {
             while (!serverSocket.isClosed()) {
                 Socket socket = serverSocket.accept();
-                new ClientHandler(socket).start();
+                new ClientHandler(socket, i).start();
+                i = 0;
             }
         } catch (Exception e) {
             closeServerSocket();
         }
     }
 
-    public void closeServerSocket () {
+    public void closeServerSocket() {
         try {
             if (serverSocket != null)
                 serverSocket.close();
