@@ -47,11 +47,17 @@ public class frame implements ActionListener, KeyListener {
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
             this.server = aserver;
+            String firstOutput;
+            String msgInputDialog = "Enter your username";
+            do {
+                this.clientUsername = getUsername(msgInputDialog);
+                firstOutput = bufferedReader.readLine();
+                msgInputDialog = "The username is Already in use";
+            } while (firstOutput.equals("take"));
             listen();
-            this.clientUsername = getUsername();
             setFrame();
             win.setVisible(true);
-            sendEntered();
+            setFirst(server, firstOutput);
             if (aserver == 1) {
                 win.addWindowListener(new WindowAdapter() {
                     @Override
@@ -126,16 +132,6 @@ public class frame implements ActionListener, KeyListener {
                 while (socket.isConnected()) {
                     try {
                         str = bufferedReader.readLine();
-                        if (server == -1) {
-                            String[] tmp1 = str.split("//");
-                            for (int i = 1; i < tmp1.length; i++) {
-                                String[] tmp2 = tmp1[i].split("µ");
-                                clientColor = new Color(Integer.parseInt(tmp2[0].split(" ")[0]), Integer.parseInt(tmp2[0].split(" ")[1]), Integer.parseInt(tmp2[0].split(" ")[2]));
-                                setLabel(tmp2[1], clientColor);
-                            }
-                            server = 0;
-                        }
-
                         if (str != null) {
                             if (server != 1 && str.contains("§")) {
                                 tmp = str.split("§");
@@ -233,14 +229,6 @@ public class frame implements ActionListener, KeyListener {
         }
     }
 
-    public String getUsername() {
-        String tmp = JOptionPane.showInputDialog("Enter your username."); 
-        /*while (checkUser(tmp)) {
-            tmp = JOptionPane.showInputDialog("The username is already in use");
-        }*/
-        return tmp;
-    }
-
     public Color getRGB() {
         Random random = new Random();
         double r = random.nextDouble() * 255;
@@ -253,11 +241,26 @@ public class frame implements ActionListener, KeyListener {
         return Integer.toString(color.getRed()) + " " + Integer.toString(color.getGreen()) + " " + Integer.toString(color.getBlue());
     }
 
-    public String getAllUser() {
-        String str = "";
-        for (int i = 0; i < listofUser.size(); i++)
-            str += "/" + listofUser.get(i);
-        return str;
+    public String getUsername(String str) {
+        String tmp = JOptionPane.showInputDialog(str); 
+        while (!tmp.matches("^[a-zA-Z0-9]+$")) {
+            tmp = JOptionPane.showInputDialog("The username must contain only letters and numbers");
+        }
+        send(getColor() + "µ" + tmp);
+        return tmp;
+    }
+
+    public void setFirst(int server, String str) {
+        if (server == 1)
+            setLabel(str.split("µ")[1], color);
+        else {
+            String[] tmp1 = str.split("//");
+            for (int i = 1; i < tmp1.length; i++) {
+                String[] tmp2 = tmp1[i].split("µ");
+                clientColor = new Color(Integer.parseInt(tmp2[0].split(" ")[0]), Integer.parseInt(tmp2[0].split(" ")[1]), Integer.parseInt(tmp2[0].split(" ")[2]));
+                setLabel(tmp2[1], clientColor);
+            }
+        }
     }
 
     public void setConnected() {

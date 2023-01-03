@@ -17,7 +17,11 @@ public class ClientHandler extends Thread {
             this.socket = asocket;
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
-            this.clientUsername = bufferedReader.readLine();
+            while (checkUser(bufferedReader.readLine())) {
+                bufferedWriter.write("take");
+                bufferedWriter.newLine();
+                bufferedWriter.flush();
+            }
             clientHandlers.add(this);
             this.tmp = i;
             broadcast(clientUsername + " has join the chat!", clientUsername.split("µ")[1], tmp);
@@ -28,12 +32,21 @@ public class ClientHandler extends Thread {
         }
     }
 
+    public boolean checkUser(String str) {
+        for (int i = 0; i < clientHandlers.size(); i++) {
+            if (str.contains("µ") && str.split("µ")[1].equals(clientHandlers.get(i).getUsername()))
+                return true;
+        }
+        clientUsername = str;
+        return false;
+    }
+
     public void run() {
         String message;
         while (socket.isConnected()) {
             try {
                 message = bufferedReader.readLine();
-                if (message != null) {
+                if (message != null && !message.equals(clientUsername)) {
                     if (message.contains(":") && message.split("µ", 2)[1].split(":", 2)[1].substring(1).contains(" ") && check_PrivateMsg(message.split("µ", 2)[1].split(":", 2)[1].substring(1).split(" ", 2)[0])) {
                         String[] whisper = message.split("µ")[1].split(":")[1].substring(2).substring(0).split(" ", 2); //destinataire et message
                         broadcast(message.split(":")[0] + " to you: " + whisper[1], whisper[0], 1);

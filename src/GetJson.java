@@ -27,6 +27,19 @@ public class GetJson {
             }
     }
 
+    static public void setUser(String str) {
+        try {
+            URL ipAdress = new URL("https://api.jsonbin.io/v3/b/63b349d901a72b59f23edd38");
+            InetAddress inetAddress = InetAddress.getLocalHost();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    static public void checkUser(String str) {
+
+    }
+
     static public boolean getRun() {
         try {
             URL ipAdress = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
