@@ -9,6 +9,7 @@ public class ClientHandler extends Thread {
     private Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
+    private int ticgames = 0;
     private int dummy = 1;
     private int tmp;
 
@@ -46,7 +47,14 @@ public class ClientHandler extends Thread {
         while (socket.isConnected()) {
             try {
                 message = bufferedReader.readLine();
-                if (message != null && !message.equals(clientUsername)) {
+                System.out.println("Server ="+message);
+                if (message.equals("/ticnumber++")) {
+                    System.out.println("++");
+                    ntic();
+                    if (ticgames == 2)
+                        broadcast("/ticgamesfull", "0", 1);
+                }
+                else if (message != null && !message.equals(clientUsername)) {
                     if (message.contains(":") && message.split("µ", 2)[1].split(":", 2)[1].substring(1).contains(" ") && check_PrivateMsg(message.split("µ", 2)[1].split(":", 2)[1].substring(1).split(" ", 2)[0])) {
                         String[] whisper = message.split("µ")[1].split(":")[1].substring(2).substring(0).split(" ", 2); //destinataire et message
                         broadcast(message.split(":")[0] + " to you: " + whisper[1], whisper[0], 1);
@@ -57,12 +65,23 @@ public class ClientHandler extends Thread {
                         clientUsername = message.substring(0, message.indexOf("µ") + 1) + clientUsername.split("µ")[1];
                     }
                 }
+                System.out.println("ticgames ="+ticgames);
             } catch (Exception e) {
                 e.printStackTrace();
                 break;
             }
         }
         closeAll(socket, bufferedReader, bufferedWriter);
+    }
+
+    public void settic(int i) {
+        ticgames += i;
+    }
+
+    public void ntic() {
+        for (ClientHandler list : clientHandlers) {
+            list.settic(1);
+        }
     }
 
     public void broadcast(String message, String user, int i) {
