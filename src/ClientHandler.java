@@ -9,7 +9,7 @@ public class ClientHandler extends Thread {
     private Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
-    private int ticgames = 0;
+    private int tic = 0;
     private int dummy = 1;
     private int tmp;
 
@@ -27,6 +27,7 @@ public class ClientHandler extends Thread {
             this.tmp = i;
             broadcast(clientUsername + " has join the chat!", clientUsername.split("µ")[1], tmp);
             tmp = 0;
+            firstTic();
         } catch (Exception e) {
             e.printStackTrace();
             closeAll(socket, bufferedReader, bufferedWriter);
@@ -48,16 +49,16 @@ public class ClientHandler extends Thread {
             try {
                 message = bufferedReader.readLine();
                 System.out.println("Server ="+message);
-                if (message.equals("/ticnumber++")) {
-                    System.out.println("++");
-                    ntic();
-                    if (ticgames == 2)
-                        broadcast("/ticgamesfull", "0", 1);
-                }
+                if (message.equals("/tic++"))
+                    mergeTic();
                 else if (message != null && !message.equals(clientUsername)) {
+                    System.out.println("size = "+ message.split("//").length);
                     if (message.contains(":") && message.split("µ", 2)[1].split(":", 2)[1].substring(1).contains(" ") && check_PrivateMsg(message.split("µ", 2)[1].split(":", 2)[1].substring(1).split(" ", 2)[0])) {
                         String[] whisper = message.split("µ")[1].split(":")[1].substring(2).substring(0).split(" ", 2); //destinataire et message
                         broadcast(message.split(":")[0] + " to you: " + whisper[1], whisper[0], 1);
+                    }
+                    else if (message.contains("//") && message.split("//")[0].equals("(MsgHistoric=) ")) {
+                        broadcast(message, message.split("//")[message.split("//").length - 1].split("µ", 2)[1].split(" ", 2)[0], 1); //destinataire
                     }
                     else
                         broadcast(message, "0", 1);
@@ -65,7 +66,6 @@ public class ClientHandler extends Thread {
                         clientUsername = message.substring(0, message.indexOf("µ") + 1) + clientUsername.split("µ")[1];
                     }
                 }
-                System.out.println("ticgames ="+ticgames);
             } catch (Exception e) {
                 e.printStackTrace();
                 break;
@@ -74,14 +74,32 @@ public class ClientHandler extends Thread {
         closeAll(socket, bufferedReader, bufferedWriter);
     }
 
-    public void settic(int i) {
-        ticgames += i;
+    public void firstTic() {
+        for (int i = 0; i < clientHandlers.size(); i++)
+            if (clientUsername.split("µ")[1] != clientHandlers.get(i).getUsername()) {
+                if (tic != clientHandlers.get(i).getTic()) {
+                    tic = clientHandlers.get(i).getTic();
+                    System.out.println("clientUsername ="+clientUsername);
+                    broadcast("/tic=µ"+tic, clientUsername.split("µ")[1], 1);
+                }
+            }
     }
 
-    public void ntic() {
-        for (ClientHandler list : clientHandlers) {
-            list.settic(1);
-        }
+    public void mergeTic() {
+        tic += 1;
+        for (ClientHandler list : clientHandlers)
+            list.setTic(tic);
+        broadcast("/tic++", "0", 1);
+        if (tic == 2)
+            broadcast("/ticfull", "0", 1); //On envoi /ticfull pour tout le monde
+    }
+
+    public void setTic(int i) {
+        tic = i;
+    }
+
+    public int getTic() {
+        return tic;
     }
 
     public void broadcast(String message, String user, int i) {

@@ -10,6 +10,12 @@ import java.awt.*;
 import java.net.*;
 import java.io.*;
 
+/* TO DO:
+ * Système de tour par tour
+ * Envoi de données pour deux joueurs
+ * 
+ */
+
 public class frame implements ActionListener, KeyListener {
 
     /* Related to MsgFrame */
@@ -34,7 +40,7 @@ public class frame implements ActionListener, KeyListener {
     private List<JLabel> listm = new ArrayList<JLabel>();
     private int gridy = 0;
     private int tictactoe = 0;
-    private int ticnumber = 0;
+    private int tic = 0;
     /* Related to Client */
     private Socket socket;
     private BufferedReader bufferedReader;
@@ -58,8 +64,8 @@ public class frame implements ActionListener, KeyListener {
                 firstOutput = bufferedReader.readLine();
                 msgInputDialog = "The username is Already in use";
             } while (firstOutput.equals("take"));
-            listen();
             setFrame();
+            listen();
             win.setVisible(true);
             setFirst(server, firstOutput);
             if (aserver == 1) {
@@ -83,6 +89,7 @@ public class frame implements ActionListener, KeyListener {
         win.setVisible(true);
         win.getContentPane().setBackground(new Color(60, 63, 65));
         win.setLayout(new BorderLayout());
+        //win.setBackground(Color.MAGENTA);
 
         menuBar.setBackground(Color.BLACK);
         menuBar.add(connectMenu);
@@ -140,16 +147,24 @@ public class frame implements ActionListener, KeyListener {
                     try {
                         str = bufferedReader.readLine();
                         System.out.println("Client ="+str);
-                        if (str != null) { 
-                            if (tictactoe == 1 && str.contains("µ") && str.contains("/Tictactoe")) {
+                        if (str != null) {
+                            /*if (tictactoe == 1 && str.contains("µ") && str.contains("/Tictactoe")) {
                                 String data = TicTacToe.getData();
                                 send("/Tictactoeµ" + clientUsername + "µ" + data);
+                            }*/
+                            if (server != 1 && str.contains("//") && str.split(" ", 2)[0].equals("(MsgHistoric=)")) {
+                                String[] tmp1 = str.split("//");
+                                for (int i = 1; i < tmp1.length; i++) {
+                                    String[] tmp2 = tmp1[i].split("µ");
+                                    clientColor = new Color(Integer.parseInt(tmp2[0].split(" ")[0]), Integer.parseInt(tmp2[0].split(" ")[1]), Integer.parseInt(tmp2[0].split(" ")[2]));
+                                    setLabel(tmp2[1], clientColor);
+                                }
                             }
-                            if (str.equals("/ticgamesfull")) {
-                                ticnumber = 2;
-                                System.out.println("client side full");
-                            }
-                            if (server != 1 && str.contains("§")) {
+                            if (str.equals("/tic++"))
+                                tic += 1;
+                            else if (str.equals("/ticfull"))
+                                tic = 2;
+                            else if (server != 1 && str.contains("§")) {
                                 tmp = str.split("§");
                                 listofUser.clear();
                                 for (int i = 0; i < tmp.length; i++)
@@ -157,22 +172,25 @@ public class frame implements ActionListener, KeyListener {
                                 displayConnected();
                             }
                             else if (str.contains("µ") && !str.split("µ")[1].equals(clientUsername + " changed their color") && !str.split(" ", 2)[0].equals("(MsgHistoric=)")) {
-                                tmp = str.split("µ");
-                                clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
-                                if (tmp[1].split(" ", 2)[1].equals("changed their color"))
-                                    setChangedColor(tmp[1].split(" ", 2)[0], clientColor);
-                                if (tictactoe != 1)
+                                if (str.split("µ")[0].equals("/tic="))
+                                    tic = Integer.parseInt(str.split("µ")[1]);
+                                else {
+                                    tmp = str.split("µ");
+                                    clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
+                                    if (tmp[1].split(" ", 2)[1].equals("changed their color"))
+                                        setChangedColor(tmp[1].split(" ", 2)[0], clientColor);
                                     setLabel(tmp[1], clientColor);
-                                str = tmp[1].substring(0,tmp[1].indexOf(" "));
-                                if (server == 1 && !String.join("", listofUser).contains(str) && tmp[1].contains("has join the chat!")) {
-                                    listofUser.add(str);
-                                    sendPast();
-                                    setConnected();
-                                }
-                                else if (server == 1 && String.join("", listofUser).contains(str) && tmp[1].contains("has left the chat!")) {
-                                    listofUser.remove(str);
-                                    connectMenu.removeAll();
-                                    setConnected();
+                                    str = tmp[1].substring(0,tmp[1].indexOf(" "));
+                                    if (server == 1 && !String.join("", listofUser).contains(str) && tmp[1].contains("has join the chat!")) {
+                                        listofUser.add(str);
+                                        sendPast();
+                                        setConnected();
+                                    }
+                                    else if (server == 1 && String.join("", listofUser).contains(str) && tmp[1].contains("has left the chat!")) {
+                                        listofUser.remove(str);
+                                        connectMenu.removeAll();
+                                        setConnected();
+                                    }
                                 }
                             }
                         }
@@ -270,7 +288,9 @@ public class frame implements ActionListener, KeyListener {
     public void setFirst(int server, String str) {
         if (server == 1)
             setLabel(str.split("µ")[1], color);
-        else {
+        else if (str.contains("µ") && str.split("µ")[0].equals("/tic="))
+            tic = Integer.parseInt(str.split("µ")[1]);
+        else {            
             String[] tmp1 = str.split("//");
             for (int i = 1; i < tmp1.length; i++) {
                 String[] tmp2 = tmp1[i].split("µ");
@@ -381,11 +401,11 @@ public class frame implements ActionListener, KeyListener {
                 JOptionPane.showMessageDialog(null, "Message too long", "Error", JOptionPane.ERROR_MESSAGE);
         }
         if (e.getSource() == tictactoeItem) {
-            if (ticnumber < 2) {
+            if (tic < 2) {
                 tictactoe = 1;
                 win.getContentPane().removeAll();
-                send("/ticnumber++");
-                TicTacToe.setFrame(win, clientUsername);
+                send("/tic++");
+                TicTacToe.setFrame(win, clientUsername, tic);
             }
             else
                 JOptionPane.showMessageDialog(null, "Sorry two person are playing", "Information", JOptionPane.INFORMATION_MESSAGE);
