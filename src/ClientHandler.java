@@ -49,10 +49,11 @@ public class ClientHandler extends Thread {
             try {
                 message = bufferedReader.readLine();
                 System.out.println("Server ="+message);
-                if (message.equals("/tic++"))
-                    mergeTic();
+                if (message.equals("/tic--"))
+                    mergeTic(-1);
+                else if (message.equals("/tic++"))
+                    mergeTic(1);
                 else if (message != null && !message.equals(clientUsername)) {
-                    System.out.println("size = "+ message.split("//").length);
                     if (message.contains(":") && message.split("µ", 2)[1].split(":", 2)[1].substring(1).contains(" ") && check_PrivateMsg(message.split("µ", 2)[1].split(":", 2)[1].substring(1).split(" ", 2)[0])) {
                         String[] whisper = message.split("µ")[1].split(":")[1].substring(2).substring(0).split(" ", 2); //destinataire et message
                         broadcast(message.split(":")[0] + " to you: " + whisper[1], whisper[0], 1);
@@ -79,17 +80,19 @@ public class ClientHandler extends Thread {
             if (clientUsername.split("µ")[1] != clientHandlers.get(i).getUsername()) {
                 if (tic != clientHandlers.get(i).getTic()) {
                     tic = clientHandlers.get(i).getTic();
-                    System.out.println("clientUsername ="+clientUsername);
                     broadcast("/tic=µ"+tic, clientUsername.split("µ")[1], 1);
                 }
             }
     }
 
-    public void mergeTic() {
-        tic += 1;
+    public void mergeTic(int i) {
+        tic += i;
         for (ClientHandler list : clientHandlers)
             list.setTic(tic);
-        broadcast("/tic++", "0", 1);
+        if (i == -1)
+            broadcast("/tic--", "0", 1);
+        if (i == 1)
+            broadcast("/tic++", "0", 1);
         if (tic == 2)
             broadcast("/ticfull", "0", 1); //On envoi /ticfull pour tout le monde
     }

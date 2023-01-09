@@ -27,33 +27,38 @@ public class TicTacToe {
     static Image round = new ImageIcon(TicTacToe.class.getClassLoader().getResource("img/round.png")).getImage().getScaledInstance(100, 100, Image.SCALE_DEFAULT);
     static Image cross = new ImageIcon(TicTacToe.class.getClassLoader().getResource("img/cross.png")).getImage().getScaledInstance(100, 100, Image.SCALE_DEFAULT);
     static JPanel[] pn = new JPanel[3];
-    static JLabel[] player = new JLabel[2];
     static JLabel[] space = new JLabel[9];
     static JButton[] btn = new JButton[2];
+    static JLabel[] player = new JLabel[2];
     static JLabel w = new JLabel();
     static int turn = 0;
     static String data;
     static String username;
+    static String versus;
     static int ticIcon;
 
-    static public void setFrame(JFrame win, String user, int tic) {
-        icon[0] = new ImageIcon(round);
-        icon[1] = new ImageIcon(cross);
-        ticIcon = tic;
-        username = user;
-        win.setResizable(false);
-        setUI(win);
-
-        for (;;) {
-            setTurn();
-            int winning = check_win(arr);
-            if (winning != 0 || take.size() == 9) {
-                setWinner(winning, win);
-            }
-        }
+    static public void setFrame(JFrame win, String user, String vs, int tic) {
+        try {
+            icon[0] = new ImageIcon(round);
+            icon[1] = new ImageIcon(cross);
+            player[0] = new JLabel(user);
+            player[1] = new JLabel("Waiting for an Oponment...");
+            if (vs != null)
+            player[1].setText(vs);
+            ticIcon = tic;
+            username = user;
+            versus = vs;
+            win.setResizable(false);
+            setUI(win, player);
+    
+            //while (check_win(arr) == 0 && take.size() != 9) {
+                //setTurn();
+            //}
+            //setWinner(check_win(arr), win);
+        } catch (Exception e) {e.printStackTrace();}
     }
 
-    static public void setUI(JFrame win) {
+    static public void setUI(JFrame win, JLabel[] player) {
         try {
             pn[0] = new JPanel();
             pn[1] = new JPanel() {
@@ -80,11 +85,8 @@ public class TicTacToe {
             pn[1].setLayout(null);
 
             //Panel[0]
-            /*player[0] = new JLabel(username);
-            player[1] = new JLabel("Oponment");
             pn[0].add(player[0]);
-            pn[0].add(player[1]);*/
-            //pn[0].add(player);
+            pn[0].add(player[1]);
 
 
             //Labels for panel[1]
@@ -147,7 +149,7 @@ public class TicTacToe {
             pn[2].add(btn[1], c);*/
 
             //Adding Panels
-            //win.add(pn[0], BorderLayout.NORTH);
+            win.add(pn[0], BorderLayout.NORTH);
             win.add(pn[1], BorderLayout.CENTER);
 
             //MouseListener
@@ -183,19 +185,16 @@ public class TicTacToe {
         } catch (Exception e) {e.printStackTrace();}
     }
 
+    static public void setVersus(String versus) {
+        player[1].setText(versus);
+    }
+
     static public String getData() {
         return data;
     }
 
     static public int getIcon() {
         return ticIcon == 0 ? 0 : 1;
-    }
-    
-    static public void setTurn() {
-        player[turn%2].setText("Player " + (turn%2 == 0 ? 1 : 2) + " turn!");
-        //player[turn%2].setForeground(Color.RED);
-        player[(turn%2 == 0 ? 1 : 0)].setText("Player " + (turn%2 == 0 ? 2 : 1));
-        //player[(turn%2 == 0 ? 1 : 0)].setForeground(Color.BLACK);
     }
 
     static public int check_win(char[] arr) {
@@ -254,5 +253,13 @@ public class TicTacToe {
             }
         }
         return closest;
+    }
+
+    static public void removeGame(JFrame win) {
+        resetall();
+        for (int i = 0; i < 2; i++) {
+            pn[i].removeAll();
+            win.remove(pn[i]);
+        }
     }
 }

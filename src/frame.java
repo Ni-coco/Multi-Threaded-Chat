@@ -34,12 +34,14 @@ public class frame implements ActionListener, KeyListener {
     private JMenuItem helpItemquit = new JMenuItem("/quit");
     private JMenuItem disconnect = new JMenuItem("Disconnect");
     private JPanel[] pnmsg = new JPanel[2];
+    private JScrollPane scrollPane = new JScrollPane();
     private JTextField message = new JTextField();
     private JButton btnmsg = new JButton("Envoyer");
     private Color color = getRGB();
     private List<JLabel> listm = new ArrayList<JLabel>();
     private int gridy = 0;
     private int tictactoe = 0;
+    private String versus = null;
     private int tic = 0;
     /* Related to Client */
     private Socket socket;
@@ -68,13 +70,18 @@ public class frame implements ActionListener, KeyListener {
             listen();
             win.setVisible(true);
             setFirst(server, firstOutput);
-            if (aserver == 1) {
-                win.addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosing(WindowEvent e) {
+            win.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    if (aserver == 1)
                         GetJson.changeServer('n');
+                    if (tictactoe == 1) {
+                        send(getColor() + "µ" + clientUsername + " has left TicTacToe game");
+                        send("/tic--");
                     }
-                });
+                }
+            });
+            if (aserver == 1) {
                 listofUser.add(clientUsername);
                 displayConnected();
             }
@@ -89,7 +96,6 @@ public class frame implements ActionListener, KeyListener {
         win.setVisible(true);
         win.getContentPane().setBackground(new Color(60, 63, 65));
         win.setLayout(new BorderLayout());
-        //win.setBackground(Color.MAGENTA);
 
         menuBar.setBackground(Color.BLACK);
         menuBar.add(connectMenu);
@@ -118,7 +124,7 @@ public class frame implements ActionListener, KeyListener {
         pnmsg[0] = new JPanel();
         pnmsg[0].setBackground(Color.BLACK);
         pnmsg[0].setLayout(new GridBagLayout());
-        JScrollPane scrollPane = new JScrollPane(pnmsg[0]);
+        scrollPane.setViewportView(pnmsg[0]);
         scrollPane.setBorder(BorderFactory.createLineBorder(Color.BLACK, 5));
         scrollPane.setBackground(Color.BLACK);
         win.add(scrollPane, BorderLayout.CENTER);
@@ -160,7 +166,24 @@ public class frame implements ActionListener, KeyListener {
                                     setLabel(tmp2[1], clientColor);
                                 }
                             }
-                            if (str.equals("/tic++"))
+                            else if (str.contains("µ") && str.split("µ", 2)[1].split(" ", 2)[1].equals("has entered TicTacToe game")) {
+                                tmp = str.split("µ", 2);
+                                clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
+                                setLabel(tmp[1], clientColor);
+                                if (tictactoe == 1 && versus == null && !tmp[1].split(" ", 2)[0].equals(clientUsername)) {
+                                    versus = tmp[1].split(" ", 2)[0];
+                                    System.out.println("setversus");
+                                    TicTacToe.setVersus(versus);
+                                }
+                            }
+                            else if (str.contains("µ") && str.split("µ", 2)[1].split(" ", 2)[1].equals("has left TicTacToe game")) {
+                                tmp = str.split("µ", 2);
+                                clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
+                                setLabel(tmp[1], clientColor);
+                            }
+                            else if (str.equals("/tic--"))
+                                tic += -1;
+                            else if (str.equals("/tic++"))
                                 tic += 1;
                             else if (str.equals("/ticfull"))
                                 tic = 2;
@@ -401,11 +424,24 @@ public class frame implements ActionListener, KeyListener {
                 JOptionPane.showMessageDialog(null, "Message too long", "Error", JOptionPane.ERROR_MESSAGE);
         }
         if (e.getSource() == tictactoeItem) {
-            if (tic < 2) {
+            if (tictactoe == 1) {
+                tictactoe = 0;
+                pnmsg[0].setVisible(true);
+                pnmsg[1].setVisible(true);
+                scrollPane.setVisible(true);
+                win.setResizable(true);
+                send("/tic--");
+                send(getColor() + "µ" + clientUsername + " has left TicTacToe game");
+                TicTacToe.removeGame(win);
+            }
+            else if (tic < 2 && tictactoe == 0) {
                 tictactoe = 1;
-                win.getContentPane().removeAll();
+                pnmsg[0].setVisible(false);
+                pnmsg[1].setVisible(false);
+                scrollPane.setVisible(false);
                 send("/tic++");
-                TicTacToe.setFrame(win, clientUsername, tic);
+                send(getColor() + "µ" + clientUsername + " has entered TicTacToe game");
+                TicTacToe.setFrame(win, clientUsername, versus, tic);
             }
             else
                 JOptionPane.showMessageDialog(null, "Sorry two person are playing", "Information", JOptionPane.INFORMATION_MESSAGE);
