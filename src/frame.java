@@ -163,6 +163,8 @@ public class frame implements ActionListener, KeyListener {
                                 for (int i = 1; i < tmp1.length; i++) {
                                     String[] tmp2 = tmp1[i].split("µ");
                                     clientColor = new Color(Integer.parseInt(tmp2[0].split(" ")[0]), Integer.parseInt(tmp2[0].split(" ")[1]), Integer.parseInt(tmp2[0].split(" ")[2]));
+                                    if (tmp2[1].split(" ", 2)[1].equals("has entered TicTacToe game"))
+                                        versus = tmp2[1].split(" ", 2)[0];
                                     setLabel(tmp2[1], clientColor);
                                 }
                             }
@@ -316,8 +318,10 @@ public class frame implements ActionListener, KeyListener {
         else {            
             String[] tmp1 = str.split("//");
             for (int i = 1; i < tmp1.length; i++) {
-                String[] tmp2 = tmp1[i].split("µ");
+                String[] tmp2 = tmp1[i].split("µ", 2);
                 clientColor = new Color(Integer.parseInt(tmp2[0].split(" ")[0]), Integer.parseInt(tmp2[0].split(" ")[1]), Integer.parseInt(tmp2[0].split(" ")[2]));
+                if (tmp2[1].split(" ", 2)[1].equals("has entered TicTacToe game"))
+                    versus = tmp2[1].split(" ", 2)[0];
                 setLabel(tmp2[1], clientColor);
             }
         }
