@@ -42,6 +42,7 @@ public class frame implements ActionListener, KeyListener {
     private int gridy = 0;
     private int tictactoe = 0;
     private String versus = null;
+    private String prevVersus;
     private int tic = 0;
     /* Related to Client */
     private Socket socket;
@@ -163,8 +164,11 @@ public class frame implements ActionListener, KeyListener {
                                 for (int i = 1; i < tmp1.length; i++) {
                                     String[] tmp2 = tmp1[i].split("µ");
                                     clientColor = new Color(Integer.parseInt(tmp2[0].split(" ")[0]), Integer.parseInt(tmp2[0].split(" ")[1]), Integer.parseInt(tmp2[0].split(" ")[2]));
-                                    if (tmp2[1].split(" ", 2)[1].equals("has entered TicTacToe game"))
+                                    if (versus == null && tmp2[1].split(" ", 2)[1].equals("has entered TicTacToe game")) {
                                         versus = tmp2[1].split(" ", 2)[0];
+                                        if (tmp2[1].split(" ", 2)[1].equals(versus) && tmp2[1].split(" ", 2)[1].equals("has left TicTacToe game"))
+                                            versus = null;
+                                    }
                                     setLabel(tmp2[1], clientColor);
                                 }
                             }
@@ -172,16 +176,25 @@ public class frame implements ActionListener, KeyListener {
                                 tmp = str.split("µ", 2);
                                 clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
                                 setLabel(tmp[1], clientColor);
-                                if (tictactoe == 1 && versus == null && !tmp[1].split(" ", 2)[0].equals(clientUsername)) {
+                                if (!tmp[1].split(" ", 2)[0].equals(clientUsername)) {
+                                    if (versus != null)
+                                        prevVersus = versus;
                                     versus = tmp[1].split(" ", 2)[0];
-                                    System.out.println("setversus");
-                                    TicTacToe.setVersus(versus);
+                                    if (tictactoe == 1)
+                                        TicTacToe.setVersus(versus);
                                 }
                             }
                             else if (str.contains("µ") && str.split("µ", 2)[1].split(" ", 2)[1].equals("has left TicTacToe game")) {
                                 tmp = str.split("µ", 2);
                                 clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
                                 setLabel(tmp[1], clientColor);
+                                if (tictactoe == 0 && versus.equals(str.split("µ", 2)[1].split(" ", 2)[0]))
+                                    versus = prevVersus;
+                                if (tictactoe == 1 && tic == 1) {
+                                    tic = 0;
+                                    TicTacToe.setTic(0);
+                                    TicTacToe.setVersus("Waiting for an Oponment...");
+                                }
                             }
                             else if (str.equals("/tic--"))
                                 tic += -1;

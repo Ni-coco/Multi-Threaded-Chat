@@ -255,6 +255,10 @@ public class TicTacToe {
         return closest;
     }
 
+    static public void setTic(int i) {
+        ticIcon = i;
+    }
+
     static public void removeGame(JFrame win) {
         resetall();
         for (int i = 0; i < 2; i++) {
