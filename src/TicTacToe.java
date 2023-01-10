@@ -19,8 +19,6 @@ import java.util.*;
 public class TicTacToe {
 
     /* Related to Frame */
-    static List<Integer> x = new ArrayList<Integer>();
-    static List<Integer> y = new ArrayList<Integer>();
     static List<Integer> take = new ArrayList<Integer>();
     static char[] arr = new char[9];
     static ImageIcon[] icon = new ImageIcon[2];
@@ -101,8 +99,6 @@ public class TicTacToe {
                 }
                 space[k].setBounds(i, j, 100, 100);
                 space[k].setVisible(false);
-                x.add(i);
-                y.add(j);
                 pn[1].add(space[k]);
                 i += 185;
             }
@@ -111,7 +107,7 @@ public class TicTacToe {
             /*pn[2] = new JPanel();
             pn[2].setLayout(new GridBagLayout());
             pn[2].setBackground(Color.BLACK);
-            GridBagConstraints c = new GridBagConstraints();
+            GridBagConstraints c = new GridBagConstraints();z
             c.gridy = 0;*/
 
             //Label for winner
@@ -156,7 +152,7 @@ public class TicTacToe {
             pn[1].addMouseMotionListener(new MouseMotionAdapter() {
                 @Override
                 public void mouseMoved(MouseEvent e) {
-                    int closest = getclosest(e, x, y);
+                    int closest = getClosest(e, space);
                     data = Integer.toString(0) + "µ" + Integer.toString(closest);
                     if (!take.contains(closest)) {
                         space[closest].setIcon(icon[getIcon()]);
@@ -170,15 +166,17 @@ public class TicTacToe {
             pn[1].addMouseListener(new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
-                    int closest = getclosest(e, x, y);
-                    data = Integer.toString(0) + "µ" + Integer.toString(closest);
-                    if (!take.contains(closest)) {
-                        space[closest].setIcon(icon[getIcon()]);
-                        arr[closest] = 'x';
-                        turn++;
+                    if (turn == ticIcon) {
+                        int closest = getClosest(e, space);
+                        data = Integer.toString(0) + "µ" + Integer.toString(closest);
+                        if (!take.contains(closest)) {
+                            space[closest].setIcon(icon[getIcon()]);
+                            arr[closest] = 'x';
+                            turn++;
+                        }
+                        space[closest].setVisible(true);
+                        take.add(closest);
                     }
-                    space[closest].setVisible(true);
-                    take.add(closest);
                 }
             });
             resetall();
@@ -236,20 +234,20 @@ public class TicTacToe {
         }
     }
 
-    static public int DistSquared(MouseEvent e, int x, int y) {
-        int diffX = e.getX() - x;
-        int diffY = e.getY() - y;
-        return (diffX*diffX+diffY*diffY);
+    static public double dist(int x1, int y1, JLabel component) {
+        int componentX = component.getX() + component.getWidth() / 2;
+        int componentY = component.getY() + component.getHeight() / 2;
+        return Math.sqrt((x1 - componentX) * (x1 - componentX) + (y1 - componentY) * (y1 - componentY));
     }
 
-    static public int getclosest(MouseEvent e, List<Integer> x, List<Integer> y) {
+    static public int getClosest(MouseEvent e, JLabel[] space) {
         int closest = 0;
-        int ShortestDistance = DistSquared(e, x.get(0), y.get(0));
+        double shortestDistance = dist(e.getX(), e.getY(), space[0]);
         for (int i = 0; i < space.length; i++) {
-            int d = DistSquared(e, x.get(i), y.get(i));
-            if (d < ShortestDistance) {
+            double d = dist(e.getX(), e.getY(), space[i]);
+            if (d < shortestDistance) {
                 closest = i;
-                ShortestDistance = d;
+                shortestDistance = d;
             }
         }
         return closest;
