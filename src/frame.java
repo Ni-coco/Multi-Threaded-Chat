@@ -43,7 +43,9 @@ public class frame implements ActionListener, KeyListener {
     private int tictactoe = 0;
     private String versus = null;
     private String prevVersus;
+    private String dataGame;
     private int tic = 0;
+    private int turnGame = 0;
     /* Related to Client */
     private Socket socket;
     private BufferedReader bufferedReader;
@@ -153,13 +155,14 @@ public class frame implements ActionListener, KeyListener {
                 while (socket.isConnected()) {
                     try {
                         str = bufferedReader.readLine();
-                        System.out.println("Client ="+str);
                         if (str != null) {
-                            /*if (tictactoe == 1 && str.contains("µ") && str.contains("/Tictactoe")) {
-                                String data = TicTacToe.getData();
-                                send("/Tictactoeµ" + clientUsername + "µ" + data);
-                            }*/
-                            if (server != 1 && str.contains("//") && str.split(" ", 2)[0].equals("(MsgHistoric=)")) {
+                            if (tictactoe == 1 && str.contains("µ") && str.split("µ")[0].equals("/tictactoe") && str.split("µ").length == 4) {
+                                if (str.split("µ")[1].equals("moved"))
+                                    TicTacToe.setMoved(Integer.parseInt(str.split("µ")[2]), Integer.parseInt(str.split("µ")[3]));
+                                else if (str.split("µ")[1].equals("pressed"))
+                                    TicTacToe.setPressed(Integer.parseInt(str.split("µ")[2]), Integer.parseInt(str.split("µ")[3]));
+                            }
+                            else if (server != 1 && str.contains("//") && str.split(" ", 2)[0].equals("(MsgHistoric=)")) {
                                 String[] tmp1 = str.split("//");
                                 for (int i = 1; i < tmp1.length; i++) {
                                     String[] tmp2 = tmp1[i].split("µ");
@@ -172,7 +175,7 @@ public class frame implements ActionListener, KeyListener {
                                     setLabel(tmp2[1], clientColor);
                                 }
                             }
-                            else if (str.contains("µ") && str.split("µ", 2)[1].split(" ", 2)[1].equals("has entered TicTacToe game")) {
+                            else if (str.contains("µ") && str.contains(" ") && str.split("µ", 2)[1].split(" ", 2)[1].equals("has entered TicTacToe game")) {
                                 tmp = str.split("µ", 2);
                                 clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
                                 setLabel(tmp[1], clientColor);
@@ -184,7 +187,7 @@ public class frame implements ActionListener, KeyListener {
                                         TicTacToe.setVersus(versus);
                                 }
                             }
-                            else if (str.contains("µ") && str.split("µ", 2)[1].split(" ", 2)[1].equals("has left TicTacToe game")) {
+                            else if (str.contains("µ") && str.contains(" ") && str.split("µ", 2)[1].split(" ", 2)[1].equals("has left TicTacToe game")) {
                                 tmp = str.split("µ", 2);
                                 clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
                                 setLabel(tmp[1], clientColor);
@@ -209,7 +212,7 @@ public class frame implements ActionListener, KeyListener {
                                     listofUser.add(tmp[i]);
                                 displayConnected();
                             }
-                            else if (str.contains("µ") && !str.split("µ")[1].equals(clientUsername + " changed their color") && !str.split(" ", 2)[0].equals("(MsgHistoric=)")) {
+                            else if (str.contains("µ") && !str.split("µ")[0].equals("/tictactoe") && !str.split("µ")[1].equals(clientUsername + " changed their color") && !str.split(" ", 2)[0].equals("(MsgHistoric=)")) {
                                 if (str.split("µ")[0].equals("/tic="))
                                     tic = Integer.parseInt(str.split("µ")[1]);
                                 else {
@@ -236,6 +239,25 @@ public class frame implements ActionListener, KeyListener {
                         if (server == 0)
                             JOptionPane.showConfirmDialog(null, "The server will be shut down. Prepare to re-run the program.", "", JOptionPane.CLOSED_OPTION);
                         closeAll(socket, bufferedReader, bufferedWriter);
+                    }
+                }
+            }
+        }).start();
+    }
+
+    public void dataTicTacToe() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (tictactoe == 1) {
+                    try {
+                        Thread.sleep(1);
+                    } catch (Exception e) {e.printStackTrace();}
+                    if (turnGame == TicTacToe.getTurn() && dataGame != TicTacToe.getData()) {
+                        System.out.println("run");
+                        dataGame = TicTacToe.getData();
+                        if (dataGame.split("µ").length == 4)
+                            send(dataGame); 
                     }
                 }
             }
@@ -452,6 +474,8 @@ public class frame implements ActionListener, KeyListener {
                 TicTacToe.removeGame(win);
             }
             else if (tic < 2 && tictactoe == 0) {
+                turnGame = tic;
+                dataTicTacToe();
                 tictactoe = 1;
                 pnmsg[0].setVisible(false);
                 pnmsg[1].setVisible(false);

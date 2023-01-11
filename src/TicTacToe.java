@@ -34,6 +34,9 @@ public class TicTacToe {
     static String username;
     static String versus;
     static int ticIcon;
+    static int vsSpace = -1;
+    static int vsIcon = -1;
+    static int closest = -1;
 
     static public void setFrame(JFrame win, String user, String vs, int tic) {
         try {
@@ -48,12 +51,11 @@ public class TicTacToe {
             versus = vs;
             win.setResizable(false);
             setUI(win, player);
-    
-            //while (check_win(arr) == 0 && take.size() != 9) {
-                //setTurn();
-            //}
-            //setWinner(check_win(arr), win);
-        } catch (Exception e) {e.printStackTrace();}
+            if (versus != null)
+                setLabel();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     static public void setUI(JFrame win, JLabel[] player) {
@@ -152,30 +154,37 @@ public class TicTacToe {
             pn[1].addMouseMotionListener(new MouseMotionAdapter() {
                 @Override
                 public void mouseMoved(MouseEvent e) {
-                    int closest = getClosest(e, space);
-                    data = Integer.toString(0) + "µ" + Integer.toString(closest);
+                    closest = getClosest(e, space);
                     if (!take.contains(closest)) {
                         space[closest].setIcon(icon[getIcon()]);
                         space[closest].setVisible(true);
+                        if (vsSpace != -1 && vsIcon != -1 ) {
+                            space[vsSpace].setIcon(icon[vsIcon]);
+                            space[vsSpace].setVisible(true);
+                        }
                     }
+                    /*if (versus != null)
+                        setLabel();*/
                     for (int i = 0; i < space.length; i++)
-                        if (i != closest && !take.contains(i))
+                        if (i != closest && !take.contains(i) && i != vsSpace)
                             space[i].setVisible(false);
+                    if (turn == ticIcon && versus != null) {
+                        data = "/tictactoeµ" + "movedµ" + Integer.toString(ticIcon) + "µ" + Integer.toString(closest);
+                    }
                 }
             });
             pn[1].addMouseListener(new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
-                    if (turn == ticIcon) {
+                    if (turn == ticIcon && versus != null) {
                         int closest = getClosest(e, space);
-                        data = Integer.toString(0) + "µ" + Integer.toString(closest);
                         if (!take.contains(closest)) {
                             space[closest].setIcon(icon[getIcon()]);
                             arr[closest] = 'x';
-                            turn++;
+                            space[closest].setVisible(true);
+                            take.add(closest);
+                            data = "/tictactoeµ" + "pressedµ" + Integer.toString(ticIcon) + "µ" + Integer.toString(closest);
                         }
-                        space[closest].setVisible(true);
-                        take.add(closest);
                     }
                 }
             });
@@ -183,16 +192,62 @@ public class TicTacToe {
         } catch (Exception e) {e.printStackTrace();}
     }
 
-    static public void setVersus(String versus) {
-        player[1].setText(versus);
+    static public void setMoved(int nicon, int vsclosest) {
+        if (!take.contains(vsclosest)) {
+            vsSpace = vsclosest;
+            vsIcon = nicon;
+            space[vsclosest].setIcon(icon[nicon]);
+            space[vsclosest].setVisible(true);
+        }
+        if (vsclosest != closest && closest != -1)
+            space[closest].setIcon(icon[getIcon()]);
+        for (int i = 0; i < space.length; i++)
+            if (i != vsclosest && i != closest && !take.contains(i))
+                space[i].setVisible(false);
+    }
+
+    static public void setPressed(int nicon, int vsclosest) {
+        space[vsclosest].setIcon(icon[nicon]);
+        space[vsclosest].setVisible(true);
+        take.add(vsclosest);
+        if (nicon == 0)
+            arr[vsclosest] = 'o';
+        else
+            arr[vsclosest] = 'x';
+        turn = turn == 0 ? 1 : 0;
+        setLabel();
+    }
+
+    static public void setLabel() {
+        player[0].setText(turn == ticIcon ? username + " turn!" : username);
+        player[0].setForeground(turn == ticIcon ? Color.RED : Color.WHITE);
+        player[1].setText(turn == ticIcon ? versus : versus + " turn!");
+        player[1].setForeground(turn == ticIcon ? Color.WHITE : Color.RED);
+    }
+
+    static public void setVersus(String vs) {
+        player[1].setText(vs);
+        versus = vs;
+        setLabel();
+    }
+
+    static public int getIcon() {
+        return ticIcon == 0 ? 0 : 1;
     }
 
     static public String getData() {
         return data;
     }
 
-    static public int getIcon() {
-        return ticIcon == 0 ? 0 : 1;
+    static public void setTurn(int i) {
+        turn = i;
+    }
+
+    static public int getTurn () {
+        return turn;
+    }
+    static public void setTic(int i) {
+        ticIcon = i;
     }
 
     static public int check_win(char[] arr) {
@@ -251,10 +306,6 @@ public class TicTacToe {
             }
         }
         return closest;
-    }
-
-    static public void setTic(int i) {
-        ticIcon = i;
     }
 
     static public void removeGame(JFrame win) {
