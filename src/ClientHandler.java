@@ -48,7 +48,6 @@ public class ClientHandler extends Thread {
         while (socket.isConnected()) {
             try {
                 message = bufferedReader.readLine();
-                System.out.println("Server ="+message);
                 if (message.equals("/tic--"))
                     mergeTic(-1);
                 else if (message.equals("/tic++"))

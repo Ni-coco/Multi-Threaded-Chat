@@ -10,12 +10,6 @@ import java.awt.*;
 import java.net.*;
 import java.io.*;
 
-/* TO DO:
- * Système de tour par tour
- * Envoi de données pour deux joueurs
- * 
- */
-
 public class frame implements ActionListener, KeyListener {
 
     /* Related to MsgFrame */
@@ -45,7 +39,6 @@ public class frame implements ActionListener, KeyListener {
     private String prevVersus;
     private String dataGame;
     private int tic = 0;
-    private int turnGame = 0;
     /* Related to Client */
     private Socket socket;
     private BufferedReader bufferedReader;
@@ -55,6 +48,11 @@ public class frame implements ActionListener, KeyListener {
     private String[] tmp;
     private String ip = GetJson.getIP();
     private int server;
+
+    /* 2 soucis a regler
+     * Le dernier space qui apparait au moment de relancer
+     * systeme de tour quand on relance chelou
+     */
 
     public frame(int aserver) {
         try {
@@ -160,7 +158,7 @@ public class frame implements ActionListener, KeyListener {
                                 if (str.split("µ")[1].equals("moved"))
                                     TicTacToe.setMoved(Integer.parseInt(str.split("µ")[2]), Integer.parseInt(str.split("µ")[3]));
                                 else if (str.split("µ")[1].equals("pressed"))
-                                    TicTacToe.setPressed(Integer.parseInt(str.split("µ")[2]), Integer.parseInt(str.split("µ")[3]));
+                                    TicTacToe.setPressed(Integer.parseInt(str.split("µ")[2]), Integer.parseInt(str.split("µ")[3]), win);
                             }
                             else if (server != 1 && str.contains("//") && str.split(" ", 2)[0].equals("(MsgHistoric=)")) {
                                 String[] tmp1 = str.split("//");
@@ -253,11 +251,18 @@ public class frame implements ActionListener, KeyListener {
                     try {
                         Thread.sleep(1);
                     } catch (Exception e) {e.printStackTrace();}
-                    if (turnGame == TicTacToe.getTurn() && dataGame != TicTacToe.getData()) {
-                        System.out.println("run");
+                    if (dataGame != TicTacToe.getData()) {
                         dataGame = TicTacToe.getData();
-                        if (dataGame.split("µ").length == 4)
-                            send(dataGame); 
+                        if (dataGame.contains("µ") && dataGame.split("µ")[0].equals("/done"))
+                            send(getColor() + "µ" + resultGame.getWin(dataGame.split("µ")[1], dataGame.split("µ")[2], dataGame.split("µ")[3]));
+                        else if (dataGame.equals("/getFrameBack()")) {
+                            versus = null;
+                            getFrameBack();
+                            win.revalidate();
+                            win.repaint();
+                        }
+                        else
+                            send(dataGame);
                     }
                 }
             }
@@ -448,6 +453,15 @@ public class frame implements ActionListener, KeyListener {
         System.exit(0);
     }
 
+    public void getFrameBack() {
+        tictactoe = 0;
+        pnmsg[0].setVisible(true);
+        pnmsg[1].setVisible(true);
+        scrollPane.setVisible(true);
+        win.setResizable(true);
+        send("/tic--");
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == btnmsg) {
@@ -464,17 +478,11 @@ public class frame implements ActionListener, KeyListener {
         }
         if (e.getSource() == tictactoeItem) {
             if (tictactoe == 1) {
-                tictactoe = 0;
-                pnmsg[0].setVisible(true);
-                pnmsg[1].setVisible(true);
-                scrollPane.setVisible(true);
-                win.setResizable(true);
-                send("/tic--");
+                getFrameBack();
                 send(getColor() + "µ" + clientUsername + " has left TicTacToe game");
                 TicTacToe.removeGame(win);
             }
             else if (tic < 2 && tictactoe == 0) {
-                turnGame = tic;
                 dataTicTacToe();
                 tictactoe = 1;
                 pnmsg[0].setVisible(false);

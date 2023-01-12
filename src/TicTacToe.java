@@ -40,6 +40,8 @@ public class TicTacToe {
 
     static public void setFrame(JFrame win, String user, String vs, int tic) {
         try {
+            for (int i = 0; i < 9; i++)
+                arr[i] = ' ';
             icon[0] = new ImageIcon(round);
             icon[1] = new ImageIcon(cross);
             player[0] = new JLabel(user);
@@ -49,6 +51,7 @@ public class TicTacToe {
             ticIcon = tic;
             username = user;
             versus = vs;
+            win.setSize(1080, 720);
             win.setResizable(false);
             setUI(win, player);
             if (versus != null)
@@ -106,45 +109,36 @@ public class TicTacToe {
             }
 
             /* Panel[2] for winner */
-            /*pn[2] = new JPanel();
+            pn[2] = new JPanel();
             pn[2].setLayout(new GridBagLayout());
             pn[2].setBackground(Color.BLACK);
-            GridBagConstraints c = new GridBagConstraints();z
-            c.gridy = 0;*/
+            GridBagConstraints c = new GridBagConstraints();
+            c.gridy = 0;
 
             //Label for winner
-            /*w.setForeground(Color.WHITE);
+            w.setForeground(Color.WHITE);
             w.setFont(new Font("Arial", Font.BOLD, 55));
             //Constraints
             c.insets = new Insets(10, 10, 40, 10);
             c.gridy = 0;
-            pn[2].add(w, c);*/ 
-            //btn[]
-            /*btn[0] = new JButton("Remake!");
-            btn[1] = new JButton("Exit");
+            pn[2].add(w, c);
+            btn[0] = new JButton("Exit");
             btn[0].addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     if (e.getSource() == btn[0]) {
-                    win.getContentPane().remove(pn[2]);
-                    pn[0].setVisible(true);
-                }
-            }});
-            btn[1].addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    System.exit(0);
+                        resetall();
+                        win.remove(pn[2]);
+                        data = "/getFrameBack()";
+                    }
             }});
             btn[0].setFont(new Font("Arial", Font.BOLD, 20));
-            btn[1].setFont(new Font("Arial", Font.BOLD, 20));
 
             c.insets = new Insets(10, 10, 20, 10);
             c.ipadx = 40;
             c.ipady = 20;
             c.gridy = 1;
             pn[2].add(btn[0], c);
-            c.gridy = 2;
-            pn[2].add(btn[1], c);*/
 
             //Adding Panels
             win.add(pn[0], BorderLayout.NORTH);
@@ -162,14 +156,11 @@ public class TicTacToe {
                             space[vsSpace].setIcon(icon[vsIcon]);
                             space[vsSpace].setVisible(true);
                         }
-                    }
-                    /*if (versus != null)
-                        setLabel();*/
-                    for (int i = 0; i < space.length; i++)
-                        if (i != closest && !take.contains(i) && i != vsSpace)
-                            space[i].setVisible(false);
-                    if (turn == ticIcon && versus != null) {
-                        data = "/tictactoeµ" + "movedµ" + Integer.toString(ticIcon) + "µ" + Integer.toString(closest);
+                        for (int i = 0; i < space.length; i++)
+                            if (i != closest && !take.contains(i) && i != vsSpace)
+                                space[i].setVisible(false);
+                        if (turn == ticIcon && versus != null)
+                            data = "/tictactoeµ" + "movedµ" + Integer.toString(ticIcon) + "µ" + Integer.toString(closest);
                     }
                 }
             });
@@ -180,7 +171,7 @@ public class TicTacToe {
                         int closest = getClosest(e, space);
                         if (!take.contains(closest)) {
                             space[closest].setIcon(icon[getIcon()]);
-                            arr[closest] = 'x';
+                            arr[closest] = (char)(ticIcon + '0');
                             space[closest].setVisible(true);
                             take.add(closest);
                             data = "/tictactoeµ" + "pressedµ" + Integer.toString(ticIcon) + "µ" + Integer.toString(closest);
@@ -193,29 +184,43 @@ public class TicTacToe {
     }
 
     static public void setMoved(int nicon, int vsclosest) {
-        if (!take.contains(vsclosest)) {
-            vsSpace = vsclosest;
-            vsIcon = nicon;
-            space[vsclosest].setIcon(icon[nicon]);
-            space[vsclosest].setVisible(true);
-        }
-        if (vsclosest != closest && closest != -1)
+        vsSpace = vsclosest;
+        vsIcon = nicon;
+        space[vsclosest].setIcon(icon[nicon]);
+        space[vsclosest].setVisible(true);
+        if (vsclosest != closest && closest != -1 && !take.contains(closest))
             space[closest].setIcon(icon[getIcon()]);
         for (int i = 0; i < space.length; i++)
             if (i != vsclosest && i != closest && !take.contains(i))
                 space[i].setVisible(false);
     }
 
-    static public void setPressed(int nicon, int vsclosest) {
+    static public void setPressed(int nicon, int vsclosest, JFrame win) {
         space[vsclosest].setIcon(icon[nicon]);
         space[vsclosest].setVisible(true);
         take.add(vsclosest);
-        if (nicon == 0)
-            arr[vsclosest] = 'o';
-        else
-            arr[vsclosest] = 'x';
+        arr[vsclosest] = (char)(nicon + '0');
         turn = turn == 0 ? 1 : 0;
+        if (check_win(arr) != -1) {
+            setWinner(check_win(arr) == ticIcon ? username + " win!" : versus + " win!", win);
+            if (turn != ticIcon)
+                data = "/doneµ" + (check_win(arr) == ticIcon ? username : versus) + "µ" + (check_win(arr) == ticIcon ? versus : username) + "µTictacToe";
+        }
+        else if (take.size() == 9) {
+            setWinner("draw!", win);
+            if (turn != ticIcon)
+                data = "/doneµdrawµTictacToe";
+        }
         setLabel();
+    }
+
+    static public void setWinner (String winner, JFrame win) {
+        for (int i = 0; i < 2; i++)
+                win.remove(pn[i]);
+            w.setText(winner);
+            win.add(pn[2], BorderLayout.CENTER);
+            win.revalidate();
+            win.repaint();
     }
 
     static public void setLabel() {
@@ -251,41 +256,30 @@ public class TicTacToe {
     }
 
     static public int check_win(char[] arr) {
-        if (arr[0] == arr[1] && arr[0] == arr[2])
-            return arr[0] == 'x' ? 1 : 2;
-        else if (arr[3] == arr[4] && arr[3] == arr[5])
-            return arr[3] == 'x' ? 1 : 2;
-        else if (arr[6] == arr[7] && arr[6] == arr[8])
-            return arr[6] == 'x' ? 1 : 2;
-        else if (arr[0] == arr[3] && arr[0] == arr[6])
-            return arr[0] == 'x' ? 1 : 2;
-        else if (arr[1] == arr[4] && arr[1] == arr[7])
-            return arr[1] == 'x' ? 1 : 2;
-        else if (arr[2] == arr[5] && arr[2] == arr[8])
-            return arr[2] == 'x' ? 1 : 2;
-        else if (arr[0] == arr[4] && arr[0] == arr[8])
-            return arr[0] == 'x' ? 1 : 2;
-        else if (arr[2] == arr[4] && arr[2] == arr[6])
-            return arr[2] == 'x' ? 1 : 2;
-        return 0;
-    }
-
-    static public void setWinner(int winner, JFrame win) {
-        resetall();
-        pn[1].setVisible(false);
-        win.add(pn[2], BorderLayout.CENTER);
-        if (winner != 0)
-            w.setText("Player " + winner + " win!");
-        else
-            w.setText("Draw!");
+        if (arr[0] != ' ' && arr[0] == arr[1] && arr[0] == arr[2])
+            return arr[0] == '1' ? 1 : 0;
+        else if (arr[3] != ' ' && arr[3] == arr[4] && arr[3] == arr[5])
+            return arr[3] == '1' ? 1 : 0;
+        else if (arr[6] != ' ' && arr[6] == arr[7] && arr[6] == arr[8])
+            return arr[6] == '1' ? 1 : 0;
+        else if (arr[0] != ' ' && arr[0] == arr[3] && arr[0] == arr[6])
+            return arr[0] == '1' ? 1 : 0;
+        else if (arr[1] != ' ' && arr[1] == arr[4] && arr[1] == arr[7])
+            return arr[1] == '1' ? 1 : 0;
+        else if (arr[2] != ' ' && arr[2] == arr[5] && arr[2] == arr[8])
+            return arr[2] == '1' ? 1 : 0;
+        else if (arr[0] != ' ' && arr[0] == arr[4] && arr[0] == arr[8])
+            return arr[0] == '1' ? 1 : 0;
+        else if (arr[2] != ' ' && arr[2] == arr[4] && arr[2] == arr[6])
+            return arr[2] == '1' ? 1 : 0;
+        return -1;
     }
 
     static public void resetall() {
         take.clear();
         for (int i = 0; i < 9; i++) {
-            arr[i] = (char)i;
-            if (space[i] != null)
-                space[i].setVisible(false);
+            arr[i] = ' ';
+            space[i].setVisible(false);
         }
     }
 
