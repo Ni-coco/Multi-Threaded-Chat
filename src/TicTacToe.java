@@ -40,6 +40,7 @@ public class TicTacToe {
 
     static public void setFrame(JFrame win, String user, String vs, int tic) {
         try {
+            resetVariable();
             for (int i = 0; i < 9; i++)
                 arr[i] = ' ';
             icon[0] = new ImageIcon(round);
@@ -56,9 +57,17 @@ public class TicTacToe {
             setUI(win, player);
             if (versus != null)
                 setLabel();
+            resetall();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    static public void resetVariable() {
+        turn = 0;
+        vsSpace = -1;
+        vsIcon = -1;
+        closest = -1;
     }
 
     static public void setUI(JFrame win, JLabel[] player) {
@@ -198,7 +207,8 @@ public class TicTacToe {
     static public void setPressed(int nicon, int vsclosest, JFrame win) {
         space[vsclosest].setIcon(icon[nicon]);
         space[vsclosest].setVisible(true);
-        take.add(vsclosest);
+        if (!take.contains(vsclosest))
+            take.add(vsclosest);
         arr[vsclosest] = (char)(nicon + '0');
         turn = turn == 0 ? 1 : 0;
         if (check_win(arr) != -1) {
@@ -209,7 +219,7 @@ public class TicTacToe {
         else if (take.size() == 9) {
             setWinner("draw!", win);
             if (turn != ticIcon)
-                data = "/doneµdrawµTictacToe";
+                data = "/drawµ" + username + "µ" + versus  + "µTictacToe";
         }
         setLabel();
     }

@@ -49,11 +49,6 @@ public class frame implements ActionListener, KeyListener {
     private String ip = GetJson.getIP();
     private int server;
 
-    /* 2 soucis a regler
-     * Le dernier space qui apparait au moment de relancer
-     * systeme de tour quand on relance chelou
-     */
-
     public frame(int aserver) {
         try {
             this.socket = new Socket(ip, 8888);
@@ -255,6 +250,8 @@ public class frame implements ActionListener, KeyListener {
                         dataGame = TicTacToe.getData();
                         if (dataGame.contains("µ") && dataGame.split("µ")[0].equals("/done"))
                             send(getColor() + "µ" + resultGame.getWin(dataGame.split("µ")[1], dataGame.split("µ")[2], dataGame.split("µ")[3]));
+                        else if (dataGame.contains("µ") && dataGame.split("µ")[0].equals("/draw"))
+                            send(getColor() + "µ" + resultGame.getDraw(dataGame.split("µ")[1], dataGame.split("µ")[2], dataGame.split("µ")[3]));
                         else if (dataGame.equals("/getFrameBack()")) {
                             versus = null;
                             getFrameBack();
