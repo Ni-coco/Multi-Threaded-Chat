@@ -13,7 +13,7 @@ import java.io.*;
 public class frame implements ActionListener, KeyListener {
 
     /* Related to MsgFrame */
-    private ImageIcon co = new ImageIcon(new ImageIcon(getClass().getClassLoader().getResource("img/connect.png")).getImage().getScaledInstance(10, 10, Image.SCALE_SMOOTH));
+    private ImageIcon co = new ImageIcon(new ImageIcon(getClass().getClassLoader().getResource("img/chat/connect.png")).getImage().getScaledInstance(10, 10, Image.SCALE_SMOOTH));
     private List<String> listofUser = new ArrayList<String>();
     private JFrame win = new JFrame();
     private JMenuBar menuBar = new JMenuBar();
@@ -23,6 +23,7 @@ public class frame implements ActionListener, KeyListener {
     private JMenu clientMenu = new JMenu();
     private JMenuItem clientItem = new JMenuItem();
     private JMenuItem tictactoeItem = new JMenuItem("TicTacToe");
+    private JMenuItem flappybirdItem = new JMenuItem("Flappy Bird");
     private JMenuItem helpItemuser = new JMenuItem("/user");
     private JMenuItem helpItemcolor = new JMenuItem("/color");
     private JMenuItem helpItemquit = new JMenuItem("/quit");
@@ -39,6 +40,7 @@ public class frame implements ActionListener, KeyListener {
     private String prevVersus;
     private String dataGame;
     private int tic = 0;
+    private int flappybird = 0;
     /* Related to Client */
     private Socket socket;
     private BufferedReader bufferedReader;
@@ -96,7 +98,9 @@ public class frame implements ActionListener, KeyListener {
         menuBar.setBackground(Color.BLACK);
         menuBar.add(connectMenu);
         tictactoeItem.addActionListener(this);
+        flappybirdItem.addActionListener(this);
         gamesMenu.add(tictactoeItem);
+        gamesMenu.add(flappybirdItem);
         menuBar.add(gamesMenu);
         helpItemcolor.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         helpItemuser.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
@@ -184,7 +188,7 @@ public class frame implements ActionListener, KeyListener {
                                 tmp = str.split("µ", 2);
                                 clientColor = new Color(Integer.parseInt(tmp[0].split(" ")[0]), Integer.parseInt(tmp[0].split(" ")[1]), Integer.parseInt(tmp[0].split(" ")[2]));
                                 setLabel(tmp[1], clientColor);
-                                if (tictactoe == 0 && versus.equals(str.split("µ", 2)[1].split(" ", 2)[0]))
+                                if (tictactoe == 0 && versus != null && versus.equals(str.split("µ", 2)[1].split(" ", 2)[0]))
                                     versus = prevVersus;
                                 if (tictactoe == 1 && tic == 1) {
                                     tic = 0;
@@ -451,12 +455,10 @@ public class frame implements ActionListener, KeyListener {
     }
 
     public void getFrameBack() {
-        tictactoe = 0;
         pnmsg[0].setVisible(true);
         pnmsg[1].setVisible(true);
         scrollPane.setVisible(true);
         win.setResizable(true);
-        send("/tic--");
     }
 
     @Override
@@ -475,11 +477,13 @@ public class frame implements ActionListener, KeyListener {
         }
         if (e.getSource() == tictactoeItem) {
             if (tictactoe == 1) {
+                tictactoe = 0;
                 getFrameBack();
+                send("/tic--");
                 send(getColor() + "µ" + clientUsername + " has left TicTacToe game");
                 TicTacToe.removeGame(win);
             }
-            else if (tic < 2 && tictactoe == 0) {
+            else if (tic < 2 && tictactoe == 0 && flappybird != 1) {
                 dataTicTacToe();
                 tictactoe = 1;
                 pnmsg[0].setVisible(false);
@@ -489,8 +493,27 @@ public class frame implements ActionListener, KeyListener {
                 send(getColor() + "µ" + clientUsername + " has entered TicTacToe game");
                 TicTacToe.setFrame(win, clientUsername, versus, tic);
             }
+            else if (flappybird == 1)
+                JOptionPane.showMessageDialog(null, "You need to quit the game before", "Information", JOptionPane.INFORMATION_MESSAGE);
             else
                 JOptionPane.showMessageDialog(null, "Sorry two person are playing", "Information", JOptionPane.INFORMATION_MESSAGE);
+        }
+        if (e.getSource() == flappybirdItem) {
+            if (flappybird == 0 && tictactoe != 1) {
+                flappybird = 1;
+                pnmsg[0].setVisible(false);
+                pnmsg[1].setVisible(false);
+                scrollPane.setVisible(false);
+                System.out.println("here");
+                new FlappyBird(win);
+            }
+            else if (flappybird == 1) {
+                flappybird = 0;
+                getFrameBack();
+                FlappyBird.removeGame(win);
+            }
+            else if (tictactoe == 1)
+                JOptionPane.showMessageDialog(null, "You need to quit the game before", "Information", JOptionPane.INFORMATION_MESSAGE);
         }
         if (e.getSource() == disconnect) {
             cmd("/quit");
