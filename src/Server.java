@@ -16,6 +16,7 @@ public class Server extends Thread {
                 i = 0;
             }
         } catch (Exception e) {
+            GetJson.changeServer('n');
             closeServerSocket();
         }
     }

@@ -9,10 +9,10 @@ public class GetJson {
 
     static public void changeServer(char a) {
         try {
-            URL ipAdress = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
-            InetAddress inetAddress = InetAddress.getLocalHost();
-            String newiP = "{\"server_ip\": \""+inetAddress.getHostAddress()+"\",\"run\": \""+a+"\"}";
-            HttpURLConnection connection = (HttpURLConnection) ipAdress.openConnection();
+            URL getJson = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
+            InetAddress ip = InetAddress.getLocalHost();
+            String newiP = "{\"server_ip\": \""+ip.getHostAddress()+"\",\"run\": \""+a+"\"}";
+            HttpURLConnection connection = (HttpURLConnection) getJson.openConnection();
             connection.setRequestMethod("PUT");
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setRequestProperty("X-Access-Key", "$2b$10$QAfPKovzaXfK91VARTkrW.Dw0BxfpJiCs8DebJdaPFQG5uqq37f2O");
@@ -27,10 +27,20 @@ public class GetJson {
             }
     }
 
+    static public String getPublicIp() { 
+        try {
+            URL whatismyip = new URL("http://checkip.dyndns.org");
+            BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
+            String ip = in.readLine();
+            return ip.split("Current IP Address: ")[1].split("</body>")[0].trim();
+        } catch (Exception e) {e.printStackTrace();}
+        return "";
+    }
+
     static public boolean getRun() {
         try {
-            URL ipAdress = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
-            HttpURLConnection connection = (HttpURLConnection) ipAdress.openConnection();
+            URL getJson = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
+            HttpURLConnection connection = (HttpURLConnection) getJson.openConnection();
             connection.setRequestMethod("GET");
             connection.setRequestProperty("X-Access-Key", "$2b$10$QAfPKovzaXfK91VARTkrW.Dw0BxfpJiCs8DebJdaPFQG5uqq37f2O");
             InputStream in = connection.getInputStream();
@@ -48,8 +58,8 @@ public class GetJson {
 
     static public String getIP() {
         try {
-            URL ipAdress = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
-            HttpURLConnection connection = (HttpURLConnection) ipAdress.openConnection();
+            URL getJson = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
+            HttpURLConnection connection = (HttpURLConnection) getJson.openConnection();
             connection.setRequestMethod("GET");
             connection.setRequestProperty("X-Access-Key", "$2b$10$QAfPKovzaXfK91VARTkrW.Dw0BxfpJiCs8DebJdaPFQG5uqq37f2O");
             InputStream in = connection.getInputStream();

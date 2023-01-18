@@ -84,6 +84,7 @@ public class frame implements ActionListener, KeyListener {
                 displayConnected();
             }
         } catch (Exception e) {
+            e.printStackTrace();
             closeAll(socket, bufferedReader, bufferedWriter);
         }
     }
@@ -94,6 +95,7 @@ public class frame implements ActionListener, KeyListener {
         win.setVisible(true);
         win.getContentPane().setBackground(new Color(60, 63, 65));
         win.setLayout(new BorderLayout());
+        win.setResizable(false);
 
         menuBar.setBackground(Color.BLACK);
         menuBar.add(connectMenu);
@@ -504,7 +506,6 @@ public class frame implements ActionListener, KeyListener {
                 pnmsg[0].setVisible(false);
                 pnmsg[1].setVisible(false);
                 scrollPane.setVisible(false);
-                System.out.println("here");
                 new FlappyBird(win);
             }
             else if (flappybird == 1) {
