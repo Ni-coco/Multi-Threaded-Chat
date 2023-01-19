@@ -506,7 +506,7 @@ public class frame implements ActionListener, KeyListener {
                 pnmsg[0].setVisible(false);
                 pnmsg[1].setVisible(false);
                 scrollPane.setVisible(false);
-                new FlappyBird(win);
+                new FlappyBird(win, 1);
             }
             else if (flappybird == 1) {
                 flappybird = 0;

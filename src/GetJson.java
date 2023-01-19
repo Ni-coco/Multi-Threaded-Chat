@@ -1,17 +1,17 @@
 import com.google.gson.JsonObject;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import com.google.gson.Gson;
 import java.net.URL;
 import java.io.*;
 
 public class GetJson {
 
+    static String IPv6 = "2a02:8429:813e:8f01:c54b:b717:e6a5:17a7";
+
     static public void changeServer(char a) {
         try {
             URL getJson = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
-            InetAddress ip = InetAddress.getLocalHost();
-            String newiP = "{\"server_ip\": \""+ip.getHostAddress()+"\",\"run\": \""+a+"\"}";
+            String newiP = "{\"server_ip\": \""+IPv6+"\",\"run\": \""+a+"\"}";
             HttpURLConnection connection = (HttpURLConnection) getJson.openConnection();
             connection.setRequestMethod("PUT");
             connection.setRequestProperty("Content-Type", "application/json");
