@@ -6,7 +6,7 @@ public class Chat {
         int server = 0;
         try {
             if (!GetJson.getRun()) {
-                ServerSocket serverSocket = new ServerSocket(8888);
+                ServerSocket serverSocket = new ServerSocket(8572);
                 server = 1;
                 GetJson.changeServer('y');
                 new Server(serverSocket).start();

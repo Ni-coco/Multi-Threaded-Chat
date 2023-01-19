@@ -53,7 +53,7 @@ public class frame implements ActionListener, KeyListener {
 
     public frame(int aserver) {
         try {
-            this.socket = new Socket(ip, 8888);
+            this.socket = new Socket(ip, 8572);
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
             this.server = aserver;
