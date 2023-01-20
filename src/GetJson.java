@@ -6,12 +6,11 @@ import java.io.*;
 
 public class GetJson {
 
-    static String IPv6 = "2a02:8429:813e:8f01:c54b:b717:e6a5:17a7";
-
     static public void changeServer(char a) {
         try {
             URL getJson = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
-            String newiP = "{\"server_ip\": \""+IPv6+"\",\"run\": \""+a+"\"}";
+            String newiP = "{\"server_ip\": \""+getIPv6()+"\",\"run\": \""+a+"\"}";
+            System.out.println("new =" + newiP);
             HttpURLConnection connection = (HttpURLConnection) getJson.openConnection();
             connection.setRequestMethod("PUT");
             connection.setRequestProperty("Content-Type", "application/json");
@@ -27,12 +26,20 @@ public class GetJson {
             }
     }
 
-    static public String getPublicIp() { 
+    static public String getIPv4() { 
         try {
-            URL whatismyip = new URL("http://checkip.dyndns.org");
+            URL whatismyip = new URL("https://api4.ipify.org/");
             BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
-            String ip = in.readLine();
-            return ip.split("Current IP Address: ")[1].split("</body>")[0].trim();
+            return in.readLine();
+        } catch (Exception e) {e.printStackTrace();}
+        return "";
+    }
+
+    static public String getIPv6() { 
+        try {
+            URL whatismyip = new URL("https://api6.ipify.org/");
+            BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
+            return in.readLine();
         } catch (Exception e) {e.printStackTrace();}
         return "";
     }

@@ -6,20 +6,20 @@ import java.util.Arrays;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.Graphics;
+import java.util.Random;
+import java.util.TimerTask;
+import java.util.Timer;
+
 
 
 public class FlappyBird implements KeyListener {
 
     /* set Variable */
     private JFrame win;
-    static int flappybird;
-    static ImageIcon[] sprite = new ImageIcon[3];
-    static Image bird1 = new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/1.png")).getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-    static Image bird2 = new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/2.png")).getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-    static Image bird3 = new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/3.png")).getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+    static ImageIcon[] sprite = new ImageIcon[6];
     static JLabel bird = new JLabel();
     static BackgroundPanel background = new BackgroundPanel();
-    static JLabel uipressenter = new JLabel(new ImageIcon(new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/toplay.png")).getImage().getScaledInstance(200, 100, Image.SCALE_SMOOTH)));
+    static JLabel uipressenter = new JLabel(new ImageIcon(new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/toplay.png")).getImage().getScaledInstance(250, 100, Image.SCALE_SMOOTH)));
     static JLabel uipause = new JLabel(new ImageIcon(new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/pause.png")).getImage().getScaledInstance(200, 70, Image.SCALE_SMOOTH)));
     static JPanel[] pn = new JPanel[2];
     static JButton btn = new JButton("Exit");
@@ -33,12 +33,8 @@ public class FlappyBird implements KeyListener {
     static Thread gameThread;
     static Thread spriteThread;
 
-
-    // velocity
-
-    public FlappyBird (JFrame frame, int i) {
+    public FlappyBird (JFrame frame) {
         win = frame;
-        flappybird = i;
         win.add(background);
         win.setSize(1080, 720);
         win.setResizable(false);
@@ -53,9 +49,8 @@ public class FlappyBird implements KeyListener {
     }
 
     static public void setUI(JFrame win) {
-        sprite[0] = new ImageIcon(bird1);
-        sprite[1] = new ImageIcon(bird2);
-        sprite[2] = new ImageIcon(bird3);
+        for (int j = 0; j < sprite.length; j++)
+            sprite[j] = new ImageIcon (new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/bluebird"+Integer.toString(j)+".png")).getImage().getScaledInstance(90, 60, Image.SCALE_SMOOTH));
         bird.setIcon(sprite[0]);
         background.removeAll();
         background.setLayout(new BorderLayout());
@@ -110,10 +105,10 @@ public class FlappyBird implements KeyListener {
             public void run() {
                 while (true) {
                     if (prev_vel != 0 && prev_vel + 3 > vertical_velocity) {
-                        bird.setIcon(sprite[1]);
-                        try {Thread.sleep(100);} catch (Exception e) {e.printStackTrace();}
-                        bird.setIcon(sprite[2]);
-                        try {Thread.sleep(100);} catch (Exception e) {e.printStackTrace();}
+                        for (int i = 1; i < sprite.length; i++) {
+                            bird.setIcon(sprite[i]);
+                            try {Thread.sleep(50);} catch (Exception e) {e.printStackTrace();}
+                        }
                         prev_vel = 0;
                     }
                     else
@@ -124,6 +119,10 @@ public class FlappyBird implements KeyListener {
         spriteThread.start();
     }
 
+    static int getPause() {
+        return pause;
+    }
+ 
     static public void removeGame(JFrame win) {
         pause = 1;
         background.removeAll();
@@ -156,11 +155,59 @@ public class FlappyBird implements KeyListener {
 }
 
 class BackgroundPanel extends JPanel {
-    private static Image background = new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/background.png")).getImage().getScaledInstance(9600, 720, Image.SCALE_SMOOTH);
+
+    private static Image[] background = new Image[2];
+    private static Image img = new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/background.png")).getImage().getScaledInstance(2399, 720, Image.SCALE_SMOOTH);
+    //static TimerTask task;
+    private int x = 0;
+    private int increment = 1;
+    private static int image = 0;
+
+    public BackgroundPanel() {
+        //taskk();
+        for (int i = 0; i < background.length; i++)
+            background[i] = img;
+        Thread t = new Thread(new Runnable() { //Each background is drawn after the other. -> -x + the size of the background
+            @Override
+            public void run() {
+                for (;;) {
+                    try { Thread.sleep(1);} catch (Exception e) {e.printStackTrace();}
+                    while (FlappyBird.getPause() != 1) {
+                        x += increment;
+                        if (x >= img.getWidth(null)) {
+                            x = 0;
+                            image = (image + 1) % 2;
+                        }
+                        repaint();
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        });
+        t.start();
+    }
+
+    /*public static void taskk() {
+        Timer timer = new Timer();
+        task = new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("This code is executed every 5 to 10 seconds randomly");
+                int delay = new Random().nextInt(5) + 5; // generates a random delay between 5 and 10 seconds
+                timer.schedule(task, delay * 1000); // schedule the task again with the random delay
+            }
+        };
+        timer.schedule(task, 0);
+    }*/
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(background, 0, 0, this);
+        g.drawImage(background[image], -x, 0, this);
+        g.drawImage(background[(image + 1) % 2], -x + img.getWidth(null) - 1, 0, this);
     }
 }
