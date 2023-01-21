@@ -62,7 +62,7 @@ public class FlappyBird implements KeyListener {
         uipressenter.setBounds(50, 50, 100, 100);
     }
 
-    static public void runGame(JFrame win) {
+    static void runGame(JFrame win) {
         gameThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -71,6 +71,7 @@ public class FlappyBird implements KeyListener {
                     while (win.isVisible() && pause == 0) {
                         if (Arrays.asList(background.getComponents()).contains(uipause)) {
                             background.remove(uipause);
+                            background.setLayout(null);
                             background.revalidate();
                             background.repaint();
                         }
@@ -105,7 +106,7 @@ public class FlappyBird implements KeyListener {
         gameThread.start();
     }
 
-    static public void runSprite(int i, int idx) {
+    static void runSprite(int i, int idx) {
         spriteThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -125,31 +126,31 @@ public class FlappyBird implements KeyListener {
                 else if (i == 1) {
                     int index = idx;
                     int size = listEnemy.size();
-                    for (;;) {
+                    int out = 0;
+                    while (out != 1) {
                         try {Thread.sleep(1);} catch (Exception e) {e.printStackTrace();}
                         while (getPause() != 1) {
-                            System.out.println("Size = " + size + "listEnemy ="+listEnemy.size());
+                            //System.out.println("Size = " + size + "listEnemy ="+listEnemy.size());
                             for (int i = 0; i < spriteEnemy.length; i++) {
                                 if (size != listEnemy.size()) {
-                                    if (size < listEnemy.size()) {
-                                        System.out.println("hi");
-                                        index -= 1;
-                                    }
+                                    if (size > listEnemy.size())
+                                        index--;
                                     size = listEnemy.size();
                                 }
-                                System.out.println("index = ="+index);
                                 listEnemy.get(index).setIcon(spriteEnemy[i]);
                                 try {Thread.sleep(150);} catch (Exception e) {e.printStackTrace();}
                             }
                             if (size != listEnemy.size()) {
-                                if (size < listEnemy.size())
-                                    index -= 1;
+                                if (size > listEnemy.size())
+                                    index--;
                                 size = listEnemy.size();
                             }
-                            if (listEnemy.get(index).getX() <= 0) {
+                            if (listEnemy.get(index).getX() <= -100 || listEnemy.isEmpty()) {
+                                background.remove(listEnemy.get(index));
                                 listEnemy.remove(index);
                                 background.repaint();
                                 background.revalidate();
+                                out = 1;
                                 break;
                             }
                         }
@@ -165,11 +166,9 @@ public class FlappyBird implements KeyListener {
             @Override
             public void run() {
                 for (;;) {
-                    try { Thread.sleep(1);} catch (Exception e) {e.printStackTrace();}
-                    while (getPause() != 1) {
-                        try {Thread.sleep((new Random().nextInt(4)+1) * 1000);} catch (Exception e) {e.printStackTrace();}
+                    try {Thread.sleep((new Random().nextInt(4)+1) * 1000);} catch (Exception e) {e.printStackTrace();}
+                    if (getPause() != 1)
                         newEnemy();
-                    }
                 }
             }
         });
@@ -178,7 +177,7 @@ public class FlappyBird implements KeyListener {
 
     public void newEnemy() {
         JLabel label = new JLabel(spriteEnemy[0]);
-        label.setBounds(500, (int)new Random().nextDouble(690)+30, 100, 100);
+        label.setBounds(500, (int)new Random().nextDouble(650)+20, 100, 100);
         background.add(label);
         background.revalidate();
         background.repaint();
@@ -192,15 +191,11 @@ public class FlappyBird implements KeyListener {
  
     static public void removeGame(JFrame win) {
         pause = 1;
+        listEnemy.clear();
         background.removeAll();
         win.remove(background);
         win.revalidate();
         win.repaint();
-        
-        /*for (int i = 0; i < 1; i++) {
-            pn[i].removeAll();
-            win.remove(pn[i]);
-        }*/
     }
 
     @Override
