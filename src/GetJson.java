@@ -10,7 +10,6 @@ public class GetJson {
         try {
             URL getJson = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
             String newiP = "{\"server_ip\": \""+getIPv6()+"\",\"run\": \""+a+"\"}";
-            System.out.println("new =" + newiP);
             HttpURLConnection connection = (HttpURLConnection) getJson.openConnection();
             connection.setRequestMethod("PUT");
             connection.setRequestProperty("Content-Type", "application/json");
