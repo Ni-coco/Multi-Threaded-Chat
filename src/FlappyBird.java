@@ -20,7 +20,6 @@ public class FlappyBird implements KeyListener {
     static ImageIcon[] spritePlayer = new ImageIcon[6];
     static List<ImageIcon> spriteEnemy = new ArrayList<ImageIcon>();
     static ImageIcon[] spriteScore = new ImageIcon[10];
-
     static JLabel player = new JLabel();
     static BackgroundPanel background = new BackgroundPanel();
     static JPanel[] pn = new JPanel[2];
@@ -32,13 +31,17 @@ public class FlappyBird implements KeyListener {
     static double prev_vel = 0;
     static double vertical_velocity_max = 5;
     static double gravity = 0.1;
-    static Thread gameThread;
     static List<JLabel> listEnemy = new ArrayList<JLabel>();
     static JLabel score = new JLabel();
     static double scoring = 0;
     static int widthwin;
     static double speedEnemy = 2;
     static int spawnEnemy = 4;
+    static Thread gameThread;
+    static Thread spritePThread;
+    static Thread spriteEThread;
+    static Thread enemyThread;
+
 
     public FlappyBird (JFrame frame) {
         win = frame;
@@ -81,7 +84,6 @@ public class FlappyBird implements KeyListener {
                         if (scoring >= 10)
                             speedEnemy = scoring > 29 ? 5 : (scoring / 10) + 2;
                         spawnEnemy = scoring > 49 ? 2 : scoring > 19 ? 3 : 4;
-                        System.out.println("Spawn ="+spawnEnemy);
                         if (Arrays.asList(background.getComponents()).contains(uipause)) {
                             background.remove(uipause);
                             background.setLayout(null);
@@ -125,7 +127,7 @@ public class FlappyBird implements KeyListener {
     }
 
     static void spriteP() {
-        new Thread(new Runnable() {
+        spritePThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (true) {
@@ -140,11 +142,12 @@ public class FlappyBird implements KeyListener {
                         player.setIcon(spritePlayer[0]);
                     }
                 }
-            }).start();
+            });
+            spritePThread.start();
         }
 
     static public void spriteE() {
-        new Thread(new Runnable() {
+        spriteEThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 ImageIcon tmp;
@@ -171,7 +174,8 @@ public class FlappyBird implements KeyListener {
                     }
                 }
             }
-        }).start();
+        });
+        spriteEThread.start();
     }
 
     static public ImageIcon getScoreIcon(int scoring, int width, int height) {
@@ -193,7 +197,7 @@ public class FlappyBird implements KeyListener {
     }
 
     static public void runEnemy() {
-        new Thread(new Runnable() {
+        enemyThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 spriteE();
@@ -203,12 +207,13 @@ public class FlappyBird implements KeyListener {
                         newEnemy();
                 }
             }
-        }).start();
+        });
+        enemyThread.start();
     }
 
     static public void newEnemy() {
         JLabel label = new JLabel(spriteEnemy.get(0));
-        label.setBounds(1000, (int)new Random().nextDouble(620)+20, 100, 100);
+        label.setBounds(1000, new Random().nextInt(560), 100, 100);
         background.add(label);
         background.revalidate();
         background.repaint();
@@ -222,9 +227,12 @@ public class FlappyBird implements KeyListener {
     static public void removeGame(JFrame win) {
         pause = 1;
         listEnemy.clear();
-        //remettre les Thread pour les arreter.
         background.removeAll();
         win.remove(background);
+        gameThread.interrupt();
+        spritePThread.interrupt();
+        spriteEThread.interrupt();
+        enemyThread.interrupt();
         win.revalidate();
         win.repaint();
     }
