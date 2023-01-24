@@ -35,8 +35,10 @@ public class FlappyBird implements KeyListener {
     static Thread gameThread;
     static List<JLabel> listEnemy = new ArrayList<JLabel>();
     static JLabel score = new JLabel();
-    static int scoring = 0;
+    static double scoring = 0;
     static int widthwin;
+    static double speedEnemy = 2;
+    static int spawnEnemy = 4;
 
     public FlappyBird (JFrame frame) {
         win = frame;
@@ -76,6 +78,10 @@ public class FlappyBird implements KeyListener {
                 for (;;) {
                     try {Thread.sleep(1);} catch (Exception e) {e.printStackTrace();}
                     while (win.isVisible() && pause == 0) {
+                        if (scoring >= 10)
+                            speedEnemy = scoring > 29 ? 5 : (scoring / 10) + 2;
+                        spawnEnemy = scoring > 49 ? 2 : scoring > 19 ? 3 : 4;
+                        System.out.println("Spawn ="+spawnEnemy);
                         if (Arrays.asList(background.getComponents()).contains(uipause)) {
                             background.remove(uipause);
                             background.setLayout(null);
@@ -88,7 +94,7 @@ public class FlappyBird implements KeyListener {
                             background.add(player);
                             player.setBounds(40, 10, 100, 100);
                             background.add(score);
-                            ImageIcon tmp = getScoreIcon(scoring, 0, 0);
+                            ImageIcon tmp = getScoreIcon((int)scoring, 0, 0);
                             score.setIcon(tmp);
                             score.setBounds((widthwin / 2) - (tmp.getIconWidth() / 2), 20, 100, 100);
                             score.setSize(tmp.getIconWidth(), tmp.getIconHeight());
@@ -103,7 +109,7 @@ public class FlappyBird implements KeyListener {
                             vertical_velocity = -1;
                         player.setLocation(player.getX(), (int)(player.getY() + vertical_velocity));
                         for (int i = 0; i < listEnemy.size(); i++)
-                            listEnemy.get(i).setLocation(listEnemy.get(i).getX() - 2 , listEnemy.get(i).getY());
+                            listEnemy.get(i).setLocation(listEnemy.get(i).getX() - (int)speedEnemy , listEnemy.get(i).getY());
                     }
                     if (!Arrays.asList(background.getComponents()).contains(uipressenter) && !Arrays.asList(background.getComponents()).contains(uipause)) {
                         background.setLayout(new BorderLayout());
@@ -152,7 +158,7 @@ public class FlappyBird implements KeyListener {
                             if (listEnemy.get(i).getX() <= -100) {
                                 background.remove(listEnemy.get(i));
                                 listEnemy.remove(i);
-                                tmp = getScoreIcon(++scoring, 0, 0);
+                                tmp = getScoreIcon((int)++scoring, 0, 0);
                                 score.setIcon(tmp);
                                 score.setBounds((widthwin / 2) - (tmp.getIconWidth() / 2), 20, 100, 100);
                                 score.setSize(tmp.getIconWidth(), tmp.getIconHeight());
@@ -192,7 +198,7 @@ public class FlappyBird implements KeyListener {
             public void run() {
                 spriteE();
                 for (;;) {
-                    try {Thread.sleep((new Random().nextInt(4)+1) * 1000);} catch (Exception e) {e.printStackTrace();}
+                    try {Thread.sleep((new Random().nextInt(spawnEnemy)) * 1000);} catch (Exception e) {e.printStackTrace();}
                     if (getPause() != 1)
                         newEnemy();
                 }

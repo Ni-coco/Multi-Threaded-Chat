@@ -15,6 +15,8 @@ import java.awt.Font;
 import javax.swing.*;
 import java.util.*;
 
+/* Mettre un background en mode table d'école */
+
 
 public class TicTacToe {
 
