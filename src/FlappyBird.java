@@ -8,8 +8,9 @@ import java.awt.*;
 import java.awt.Graphics;
 import java.util.List;
 import java.awt.image.BufferedImage;
+//import org.jbox2d.collision.*;
 
-
+import javax.swing.border.LineBorder;
 
 public class FlappyBird implements KeyListener {
 
@@ -41,6 +42,7 @@ public class FlappyBird implements KeyListener {
     static Thread spritePThread;
     static Thread spriteEThread;
     static Thread enemyThread;
+    static Thread hitThread;
 
 
     public FlappyBird (JFrame frame) {
@@ -65,6 +67,7 @@ public class FlappyBird implements KeyListener {
         for (int i = 0; i < spriteScore.length; i++)
             spriteScore[i] = new ImageIcon(new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/score/"+Integer.toString(i)+".png")).getImage().getScaledInstance(40, 60, Image.SCALE_SMOOTH));
         player.setIcon(spritePlayer[0]);
+        player.setBorder(new LineBorder(Color.GREEN, 1));
         score.setIcon(spriteScore[0]);
         background.removeAll();
         background.setLayout(new BorderLayout());
@@ -125,6 +128,22 @@ public class FlappyBird implements KeyListener {
         });
         gameThread.start();
     }
+
+    /*static void getHit() {
+        hitThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < listEnemy.size(); i++) {
+                    //if ()
+                    listEnemy.get(i).getX();
+                    listEnemy.get(i).getY();
+                    player.getX();
+                    player.getY();
+                }
+            }
+        });
+        hitThread.start();
+    }*/
 
     static void spriteP() {
         spritePThread = new Thread(new Runnable() {
@@ -214,6 +233,7 @@ public class FlappyBird implements KeyListener {
     static public void newEnemy() {
         JLabel label = new JLabel(spriteEnemy.get(0));
         label.setBounds(1000, new Random().nextInt(560), 100, 100);
+        label.setBorder(new LineBorder(Color.RED, 1));
         background.add(label);
         background.revalidate();
         background.repaint();
@@ -233,6 +253,7 @@ public class FlappyBird implements KeyListener {
         spritePThread.interrupt();
         spriteEThread.interrupt();
         enemyThread.interrupt();
+        hitThread.interrupt();
         win.revalidate();
         win.repaint();
     }
