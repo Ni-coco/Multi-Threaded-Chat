@@ -8,8 +8,7 @@ import java.awt.*;
 import java.awt.Graphics;
 import java.util.List;
 import java.awt.image.BufferedImage;
-//import org.jbox2d.collision.*;
-
+import java.awt.Rectangle;
 import javax.swing.border.LineBorder;
 
 public class FlappyBird implements KeyListener {
@@ -43,7 +42,7 @@ public class FlappyBird implements KeyListener {
     static Thread spriteEThread;
     static Thread enemyThread;
     static Thread hitThread;
-
+    static List<Rectangle> enemyRec = new ArrayList<Rectangle>();
 
     public FlappyBird (JFrame frame) {
         win = frame;
@@ -67,7 +66,7 @@ public class FlappyBird implements KeyListener {
         for (int i = 0; i < spriteScore.length; i++)
             spriteScore[i] = new ImageIcon(new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/score/"+Integer.toString(i)+".png")).getImage().getScaledInstance(40, 60, Image.SCALE_SMOOTH));
         player.setIcon(spritePlayer[0]);
-        player.setBorder(new LineBorder(Color.GREEN, 1));
+        //player.setBorder(new LineBorder(Color.GREEN, 1));
         score.setIcon(spriteScore[0]);
         background.removeAll();
         background.setLayout(new BorderLayout());
@@ -81,6 +80,7 @@ public class FlappyBird implements KeyListener {
             public void run() {
                 spriteP();
                 runEnemy();
+                getHit();
                 for (;;) {
                     try {Thread.sleep(1);} catch (Exception e) {e.printStackTrace();}
                     while (win.isVisible() && pause == 0) {
@@ -129,21 +129,24 @@ public class FlappyBird implements KeyListener {
         gameThread.start();
     }
 
-    /*static void getHit() {
+    static void getHit() {
         hitThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                for (int i = 0; i < listEnemy.size(); i++) {
-                    //if ()
-                    listEnemy.get(i).getX();
-                    listEnemy.get(i).getY();
-                    player.getX();
-                    player.getY();
+                Rectangle playerRec = new Rectangle(player.getX(), player.getY(), player.getWidth(), player.getHeight());
+                for (;;) {
+                    try {Thread.sleep(1);} catch (Exception e) {e.printStackTrace();}
+                    for (int i = 0; i < listEnemy.size(); i++) {
+                        playerRec.setRect(player.getX(), player.getY(), player.getWidth(), player.getHeight());
+                        enemyRec.get(i).setRect(listEnemy.get(i).getX(), listEnemy.get(i).getY(), listEnemy.get(i).getWidth(), listEnemy.get(i).getHeight() / 3);
+                        if (playerRec.intersects(enemyRec.get(i)))
+                            System.out.println("hit");
+                    }
                 }
             }
         });
         hitThread.start();
-    }*/
+    }
 
     static void spriteP() {
         spritePThread = new Thread(new Runnable() {
@@ -180,6 +183,7 @@ public class FlappyBird implements KeyListener {
                             if (listEnemy.get(i).getX() <= -100) {
                                 background.remove(listEnemy.get(i));
                                 listEnemy.remove(i);
+                                enemyRec.remove(i);
                                 tmp = getScoreIcon((int)++scoring, 0, 0);
                                 score.setIcon(tmp);
                                 score.setBounds((widthwin / 2) - (tmp.getIconWidth() / 2), 20, 100, 100);
@@ -233,11 +237,11 @@ public class FlappyBird implements KeyListener {
     static public void newEnemy() {
         JLabel label = new JLabel(spriteEnemy.get(0));
         label.setBounds(1000, new Random().nextInt(560), 100, 100);
-        label.setBorder(new LineBorder(Color.RED, 1));
         background.add(label);
         background.revalidate();
         background.repaint();
         listEnemy.add(label);
+        enemyRec.add(new Rectangle(label.getX(), label.getY(), label.getWidth(), (int)(label.getHeight() / 3)));
     }
 
     static int getPause() {
