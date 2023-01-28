@@ -93,7 +93,7 @@ public class ClientHandler extends Thread {
         if (i == 1)
             broadcast("/tic++", "0", 1);
         if (tic == 2)
-            broadcast("/ticfull", "0", 1); //On envoi /ticfull pour tout le monde
+            broadcast("/ticfull", "0", 1);
     }
 
     public void setTic(int i) {
