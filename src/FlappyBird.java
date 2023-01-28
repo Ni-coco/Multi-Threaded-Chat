@@ -133,14 +133,22 @@ public class FlappyBird implements KeyListener {
         hitThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Rectangle playerRec = new Rectangle(player.getX(), player.getY(), player.getWidth(), player.getHeight());
+                String tmp = "";
+                Rectangle playerRec = new Rectangle(player.getX(), player.getY() + (player.getHeight() / 3), player.getWidth(), player.getHeight() / 2);
                 for (;;) {
                     try {Thread.sleep(1);} catch (Exception e) {e.printStackTrace();}
                     for (int i = 0; i < listEnemy.size(); i++) {
-                        playerRec.setRect(player.getX(), player.getY(), player.getWidth(), player.getHeight());
-                        enemyRec.get(i).setRect(listEnemy.get(i).getX(), listEnemy.get(i).getY(), listEnemy.get(i).getWidth(), listEnemy.get(i).getHeight() / 3);
+                        playerRec.setRect(player.getX() + (player.getWidth() / 10), player.getY() + (player.getHeight() / 3), (int)(player.getWidth() / 1.5), (int)(player.getHeight() / 3));
+                        enemyRec.get(i).setRect(listEnemy.get(i).getX() + (listEnemy.get(i).getWidth() / 10), listEnemy.get(i).getY() + (listEnemy.get(i).getHeight() / 3), (int)(listEnemy.get(i).getWidth() / 1.5), (int)(listEnemy.get(i).getHeight() / 3));
+                        Graphics g = background.getGraphics();
+                        /*g.drawRect(player.getX() + (player.getWidth() / 10), player.getY() + (player.getHeight() / 3), (int)(player.getWidth() / 1.5), (int)(player.getHeight() / 3));
+                        g.drawRect(listEnemy.get(i).getX() + (listEnemy.get(i).getWidth() / 10), listEnemy.get(i).getY() + (listEnemy.get(i).getHeight() / 3), (int)(listEnemy.get(i).getWidth() / 1.5), (int)(listEnemy.get(i).getHeight() / 3));*/
                         if (playerRec.intersects(enemyRec.get(i)))
-                            System.out.println("hit");
+                            pause = 1;
+                        /*else if (tmp.equals("hit")) {
+                            System.out.println("else");
+                            tmp = "else";
+                        }*/
                     }
                 }
             }
@@ -226,7 +234,14 @@ public class FlappyBird implements KeyListener {
                 spriteE();
                 for (;;) {
                     try {Thread.sleep((new Random().nextInt(spawnEnemy)) * 1000);} catch (Exception e) {e.printStackTrace();}
-                    if (getPause() != 1)
+                    /*System.out.print((int)scoring + listEnemy.size());
+                    System.out.println(" = " + (((int)scoring + listEnemy.size()) % 10 == 0));*/
+                    if (scoring != 0 && ((((int)scoring + listEnemy.size()) % 10 == 0)) && !(scoring > 20)) {
+                        System.out.println("sleepo");
+                        try {Thread.sleep(7000);} catch (Exception e) {e.printStackTrace();}
+                        newEnemy();
+                    }
+                    else if (getPause() != 1)
                         newEnemy();
                 }
             }
@@ -235,13 +250,15 @@ public class FlappyBird implements KeyListener {
     }
 
     static public void newEnemy() {
-        JLabel label = new JLabel(spriteEnemy.get(0));
+        JLabel label = new JLabel(spriteEnemy.get(new Random().nextInt(3)));
         label.setBounds(1000, new Random().nextInt(560), 100, 100);
         background.add(label);
         background.revalidate();
         background.repaint();
         listEnemy.add(label);
-        enemyRec.add(new Rectangle(label.getX(), label.getY(), label.getWidth(), (int)(label.getHeight() / 3)));
+        //label.setBorder(new LineBorder(Color.RED, 1));
+        //new Rectangle(label.getX(), label.getY() + (label.getHeight() / 2), label.getWidth(), (int)(label.getHeight() / 2)).
+        enemyRec.add(new Rectangle(label.getX(), label.getY() + (label.getHeight() / 2), label.getWidth(), (int)(label.getHeight() / 2)));
     }
 
     static int getPause() {
