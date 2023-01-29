@@ -17,6 +17,11 @@ public class FlappyBird implements KeyListener {
     private JFrame win;
     static JLabel uipressenter = new JLabel(new ImageIcon(new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/toplay.png")).getImage().getScaledInstance(250, 100, Image.SCALE_SMOOTH)));
     static JLabel uipause = new JLabel(new ImageIcon(new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/pause.png")).getImage().getScaledInstance(200, 70, Image.SCALE_SMOOTH)));
+    static JLabel youDie = new JLabel(new ImageIcon(new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/youdie.png")).getImage().getScaledInstance(240, 50, Image.SCALE_SMOOTH)));
+    static ImageIcon deadbird = new ImageIcon((new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/player/bluebirddead.png")).getImage().getScaledInstance(90, 60, Image.SCALE_SMOOTH)));
+    static ImageIcon yourscore = new ImageIcon((new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/yourscore.png")).getImage().getScaledInstance(480, 60, Image.SCALE_SMOOTH)));
+    static ImageIcon thebest = new ImageIcon((new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/thebest.png")).getImage().getScaledInstance(300, 30, Image.SCALE_SMOOTH)));
+
     static ImageIcon[] spritePlayer = new ImageIcon[6];
     static List<ImageIcon> spriteEnemy = new ArrayList<ImageIcon>();
     static ImageIcon[] spriteScore = new ImageIcon[10];
@@ -44,6 +49,8 @@ public class FlappyBird implements KeyListener {
     static List<Rectangle> enemyRec = new ArrayList<Rectangle>();
     static int dead = 0;
     static int finalscore = 0;
+    static JPanel finalpanel = new JPanel();
+    static int bestScore;
 
     public void resetAll() {
         pause = 1;
@@ -53,6 +60,8 @@ public class FlappyBird implements KeyListener {
         scoring = 0;
         spawnEnemy = 4;
         dead = 0;
+        listEnemy.clear();
+        finalpanel.removeAll();
     }
 
     public FlappyBird (JFrame frame) {
@@ -123,30 +132,97 @@ public class FlappyBird implements KeyListener {
                         if (dead == 1 && player.getY() >= 593) {
                             gravity = 0;
                             vertical_velocity = 0;
+                            for (int i = 0; i < listEnemy.size(); i++)
+                                background.remove(listEnemy.get(i));
+                            win.repaint();
+                            win.revalidate();
                         }
                         if (player.getY() + vertical_velocity < -50)
                             vertical_velocity = 0;
-                        else if (player.getY() >= 593 && dead == 0) {
+                        else if (player.getY() >= 592 && dead == 0) {
                             dead = 1;
                             finalscore = (int)scoring;
+                            getBestScore();
                             try {Thread.sleep(10);} catch (Exception e) {e.printStackTrace();}
-                            player.setIcon(new ImageIcon(new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/player/bluebirddead.png")).getImage().getScaledInstance(90, 60, Image.SCALE_SMOOTH)));
+                            player.setIcon(deadbird);
                         }
                         player.setLocation(player.getX(), (int)(player.getY() + vertical_velocity));
                         for (int i = 0; i < listEnemy.size(); i++)
                             listEnemy.get(i).setLocation(listEnemy.get(i).getX() - (int)speedEnemy , listEnemy.get(i).getY());
                     }
-                    if (!Arrays.asList(background.getComponents()).contains(uipressenter) && !Arrays.asList(background.getComponents()).contains(uipause)) {
+                    if (!Arrays.asList(background.getComponents()).contains(uipressenter) && !Arrays.asList(background.getComponents()).contains(uipause) && dead != 1) {
                         background.setLayout(new BorderLayout());
                         background.add(uipause, BorderLayout.CENTER);
                         background.revalidate();
                         background.repaint();
                     }
-
+                    else if (dead == 1) {
+                        if (!Arrays.asList(finalpanel.getComponents()).contains(youDie)) {
+                            System.out.println(bestScore);
+                            background.remove(score);
+                            finalpanel.setLayout(new GridLayout(0, 1));
+                            finalpanel.setOpaque(false);
+                            finalpanel.add(youDie);
+                            score.setIcon(getScore(yourscore, finalscore));
+                            score.setHorizontalAlignment(JLabel.CENTER);
+                            finalpanel.add(score);
+                            finalpanel.add(new JLabel(thebest));
+                            finalpanel.setBounds(0, 0, 1064, 680);
+                            background.add(finalpanel);
+                            background.repaint();
+                            background.revalidate();
+                        }
+                    }
                 }
             }
         });
         gameThread.start();
+    }
+
+    static public void getBestScore() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                bestScore = GetJson.getBestScore(finalscore);
+            }
+        }).start();
+    }
+
+    static public ImageIcon getScore(ImageIcon img1, int score) {
+        ImageIcon icon1 = img1;
+        ImageIcon icon2 = getBlackColor(getScoreIcon(score, 0, 0));
+        //icon2.getImage().getScaledInstance(icon2.getIconWidth(), 50, Image.SCALE_SMOOTH);
+        int width = icon1.getIconWidth() + icon2.getIconWidth();
+        int height = Math.max(icon1.getIconHeight(), icon2.getIconHeight());
+
+        BufferedImage combinedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics g = combinedImage.createGraphics();
+        icon1.paintIcon(null, g, 0, 0);
+        icon2.paintIcon(null, g, icon1.getIconWidth(), 0);
+        g.dispose();
+
+        return new ImageIcon(combinedImage);
+    }
+
+    static public ImageIcon getBlackColor(ImageIcon original) {
+        ImageIcon originalIcon = original;
+        BufferedImage originalImage = new BufferedImage(originalIcon.getIconWidth(), originalIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics g = originalImage.createGraphics();
+        originalIcon.paintIcon(null, g, 0, 0);
+        g.dispose();
+        BufferedImage blackImage = new BufferedImage(originalImage.getWidth(), originalImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        for (int x = 0; x < originalImage.getWidth(); x++) {
+            for (int y = 0; y < originalImage.getHeight(); y++) {
+                int originalPixel = originalImage.getRGB(x, y);
+                int red = (originalPixel >> 16) & 0xff;
+                int green = (originalPixel >> 8) & 0xff;
+                int blue = originalPixel & 0xff;
+                int alpha = (originalPixel >> 24) & 0xff;
+                int blackPixel = (alpha << 24) | (0 << 16) | (0 << 8) | 0;
+                blackImage.setRGB(x, y, blackPixel);
+            }
+        }
+        return new ImageIcon(blackImage);
     }
 
     static void getHit() {
@@ -162,8 +238,10 @@ public class FlappyBird implements KeyListener {
                         if (playerRec.intersects(enemyRec.get(i))) {
                             dead = 1;
                             finalscore = (int)scoring;
+                            getBestScore();
+                            vertical_velocity = 0;
                             try {Thread.sleep(10);} catch (Exception e) {e.printStackTrace();}
-                            player.setIcon(new ImageIcon(new ImageIcon(FlappyBird.class.getClassLoader().getResource("img/flappybird/player/bluebirddead.png")).getImage().getScaledInstance(90, 60, Image.SCALE_SMOOTH)));
+                            player.setIcon(deadbird);
 
                         }
                     }
@@ -182,6 +260,8 @@ public class FlappyBird implements KeyListener {
                         for (int i = 1; i < spritePlayer.length; i++) {
                             player.setIcon(spritePlayer[i]);
                             try {Thread.sleep(50);} catch (Exception e) {e.printStackTrace();}
+                            if (dead == 1)
+                                break;
                         }
                         prev_vel = 0;
                     }
@@ -201,7 +281,7 @@ public class FlappyBird implements KeyListener {
                 int j;
                 while (dead == 0 && frame.getFlappy() == 1) {
                     try {Thread.sleep(1);} catch (Exception e) {e.printStackTrace();}
-                    while (listEnemy.size() > 0 && getPause() != 1) {
+                    while (getPause() != 1 && player.getY() <= 593) {
                         for (int i = 0; i < listEnemy.size(); i++) {
                             j = spriteEnemy.indexOf(listEnemy.get(i).getIcon());
                             listEnemy.get(i).setIcon(spriteEnemy.get(j == 2 ? 0 : ++j));
@@ -253,9 +333,10 @@ public class FlappyBird implements KeyListener {
                     try {Thread.sleep((new Random().nextInt(spawnEnemy)) * 1000);} catch (Exception e) {e.printStackTrace();}
                     if (scoring != 0 && ((((int)scoring + listEnemy.size()) % 10 == 0)) && !(scoring > 20)) {
                         try {Thread.sleep(7000);} catch (Exception e) {e.printStackTrace();}
-                        newEnemy();
+                        if (dead != 1)
+                            newEnemy();
                     }
-                    else if (getPause() != 1)
+                    else if (getPause() != 1 && dead != 1)
                         newEnemy();
                 }
             }

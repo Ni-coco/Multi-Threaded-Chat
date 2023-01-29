@@ -6,7 +6,7 @@ import java.io.*;
 
 public class GetJson {
 
-    static public void changeServer(char a) {
+    static public void setServer(char a) {
         try {
             URL getJson = new URL("https://api.jsonbin.io/v3/b/63aa0933dfc68e59d5718784");
             String newiP = "{\"server_ip\": \""+getIPv6()+"\",\"run\": \""+a+"\"}";
@@ -77,5 +77,45 @@ public class GetJson {
             return data.get("server_ip").toString().replaceAll("\"", "");
         } catch (Exception e) {e.printStackTrace();}
         return "";
+    }
+
+    static public int getBestScore(int score) {
+        try {
+            URL getJson = new URL("https://api.jsonbin.io/v3/b/63d6ba34ebd26539d06c73c9");
+            HttpURLConnection connection = (HttpURLConnection) getJson.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("X-Access-Key", "$2b$10$QAfPKovzaXfK91VARTkrW.Dw0BxfpJiCs8DebJdaPFQG5uqq37f2O");
+            InputStream in = connection.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            String tmp = reader.readLine();
+            Gson gson = new Gson();
+            JsonObject json = gson.fromJson(tmp, JsonObject.class);
+            JsonObject data = json.get("record").getAsJsonObject();
+            int record = Integer.parseInt(data.get("best").toString().replaceAll("\"", ""));
+            if (record < score) {
+                setBestScore(score);
+                return score;
+            }
+            else
+                return record;
+        } catch (Exception e) {e.printStackTrace();}
+        return 0;
+    }
+
+    static public void setBestScore(int score) {
+        try {
+            URL getJson = new URL("https://api.jsonbin.io/v3/b/63d6ba34ebd26539d06c73c9");
+            HttpURLConnection connection = (HttpURLConnection) getJson.openConnection();
+            String newRecord = "{\"best\": \""+Integer.toString(score)+"\"}";
+            connection.setRequestMethod("PUT");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("X-Access-Key", "$2b$10$QAfPKovzaXfK91VARTkrW.Dw0BxfpJiCs8DebJdaPFQG5uqq37f2O");
+            connection.setDoOutput(true);
+            OutputStream outputStream = connection.getOutputStream();
+            outputStream.write(newRecord.getBytes());
+            outputStream.flush();
+            outputStream.close();
+            int reponse = connection.getResponseCode();
+        } catch (Exception e) {e.printStackTrace();}
     }
 }

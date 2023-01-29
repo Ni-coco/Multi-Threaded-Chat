@@ -72,7 +72,7 @@ public class frame implements ActionListener, KeyListener {
                 @Override
                 public void windowClosing(WindowEvent e) {
                     if (aserver == 1)
-                        GetJson.changeServer('n');
+                        GetJson.setServer('n');
                     if (tictactoe == 1) {
                         send(getColor() + "µ" + clientUsername + " has left TicTacToe game");
                         send("/tic--");
@@ -446,7 +446,7 @@ public class frame implements ActionListener, KeyListener {
 
     public void closeAll(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
         if (server == 1)
-                GetJson.changeServer('n');
+                GetJson.setServer('n');
         try {
             if (socket != null)
                 socket.close();
