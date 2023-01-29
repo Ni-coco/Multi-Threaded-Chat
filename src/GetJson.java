@@ -115,7 +115,7 @@ public class GetJson {
             outputStream.write(newRecord.getBytes());
             outputStream.flush();
             outputStream.close();
-            int reponse = connection.getResponseCode();
+            connection.getResponseCode();
         } catch (Exception e) {e.printStackTrace();}
     }
 }

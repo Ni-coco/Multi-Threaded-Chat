@@ -272,6 +272,23 @@ public class frame implements ActionListener, KeyListener {
         }).start();
     }
 
+    public void dataFlappyBird() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (flappybird == 1) {
+                    try { Thread.sleep(1);} catch (Exception e) {e.printStackTrace();}
+                    if (FlappyBird.getData().equals("/getFrameBack()")) {
+                        getFrameBack();
+                        win.revalidate();
+                        win.repaint();
+                        flappybird = 0;
+                    }
+                }
+            }
+        }).start();
+    }
+
     public void cmd(String msg) {
         try {
             if (msg.charAt(0) == '/') {
@@ -510,6 +527,7 @@ public class frame implements ActionListener, KeyListener {
                 pnmsg[0].setVisible(false);
                 pnmsg[1].setVisible(false);
                 scrollPane.setVisible(false);
+                dataFlappyBird();
                 new FlappyBird(win);
             }
             else if (flappybird == 1) {
