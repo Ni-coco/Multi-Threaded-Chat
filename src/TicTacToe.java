@@ -24,8 +24,8 @@ public class TicTacToe {
     static List<Integer> take = new ArrayList<Integer>();
     static char[] arr = new char[9];
     static ImageIcon[] icon = new ImageIcon[2];
-    static Image round = new ImageIcon(TicTacToe.class.getClassLoader().getResource("img/tictactoe/round.png")).getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-    static Image cross = new ImageIcon(TicTacToe.class.getClassLoader().getResource("img/tictactoe/cross.png")).getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+    static Image round = new ImageIcon(TicTacToe.class.getClassLoader().getResource("sprite/tictactoe/round.png")).getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+    static Image cross = new ImageIcon(TicTacToe.class.getClassLoader().getResource("sprite/tictactoe/cross.png")).getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
     static JPanel[] pn = new JPanel[3];
     static JLabel[] space = new JLabel[9];
     static JButton[] btn = new JButton[2];

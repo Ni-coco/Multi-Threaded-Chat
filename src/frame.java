@@ -13,7 +13,7 @@ import java.io.*;
 public class frame implements ActionListener, KeyListener {
 
     /* Related to MsgFrame */
-    private ImageIcon co = new ImageIcon(new ImageIcon(getClass().getClassLoader().getResource("img/chat/connect.png")).getImage().getScaledInstance(10, 10, Image.SCALE_SMOOTH));
+    private ImageIcon co = new ImageIcon(new ImageIcon(getClass().getClassLoader().getResource("sprite/chat/connect.png")).getImage().getScaledInstance(10, 10, Image.SCALE_SMOOTH));
     private List<String> listofUser = new ArrayList<String>();
     private JFrame win = new JFrame();
     private JMenuBar menuBar = new JMenuBar();
