@@ -40,7 +40,7 @@ public class frame implements ActionListener, KeyListener {
     private String prevVersus;
     private String dataGame;
     private int tic = 0;
-    private int flappybird = 0;
+    static int flappybird = 0;
     /* Related to Client */
     private Socket socket;
     private BufferedReader bufferedReader;
@@ -351,6 +351,10 @@ public class frame implements ActionListener, KeyListener {
         }
         send(getColor() + "µ" + tmp);
         return tmp;
+    }
+
+    static public int getFlappy() {
+        return flappybird;
     }
 
     public void setFirst(int server, String str) {
