@@ -341,8 +341,17 @@ public class frame implements ActionListener, KeyListener {
         cstr.anchor = GridBagConstraints.WEST;
         pnmsg[0].add(listm.get(gridy), cstr);
         gridy++;
-        pnmsg[0].revalidate();
-        pnmsg[0].repaint();
+
+        //Set the scrollBar to the bottom
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                pnmsg[0].revalidate();
+                pnmsg[0].repaint();
+                JViewport viewport = scrollPane.getViewport();
+                Point bottom = new Point(0, pnmsg[0].getHeight());
+                viewport.setViewPosition(bottom);
+            }
+          });
     }
 
     public void displayConnected() {
