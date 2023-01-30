@@ -261,6 +261,8 @@ public class frame implements ActionListener, KeyListener {
                         else if (dataGame.equals("/getFrameBack()")) {
                             versus = null;
                             getFrameBack();
+                            tictactoe = 0;
+                            send("/tic--");
                             win.revalidate();
                             win.repaint();
                         }
@@ -276,14 +278,18 @@ public class frame implements ActionListener, KeyListener {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                String dataFlap = "";
                 while (flappybird == 1) {
+                    dataFlap = FlappyBird.getData();
                     try { Thread.sleep(1);} catch (Exception e) {e.printStackTrace();}
-                    if (FlappyBird.getData().equals("/getFrameBack()")) {
+                    if (dataFlap != FlappyBird.getData() && FlappyBird.getData().equals("/getFrameBack()")) {
                         getFrameBack();
                         win.revalidate();
                         win.repaint();
                         flappybird = 0;
                     }
+                    else if (dataFlap != FlappyBird.getData() && FlappyBird.getData().split("µ", 2)[0].equals("/done"))
+                        send(getColor() + "µ" + resultGame.getFlap(FlappyBird.getData().split("µ")[1], FlappyBird.getData().split("µ")[2], FlappyBird.getData().split("µ")[3]));
                 }
             }
         }).start();
@@ -528,7 +534,7 @@ public class frame implements ActionListener, KeyListener {
                 pnmsg[1].setVisible(false);
                 scrollPane.setVisible(false);
                 dataFlappyBird();
-                new FlappyBird(win);
+                new FlappyBird(win, clientUsername);
             }
             else if (flappybird == 1) {
                 flappybird = 0;

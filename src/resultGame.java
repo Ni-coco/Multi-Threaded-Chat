@@ -36,4 +36,12 @@ public class resultGame {
         str[9] = p1 + " and " + p2 + " " + game + " game ended in a draw, a true showcase of skill.";
         return str[new Random().nextInt(10)];
     }
+
+    static public String getFlap(String user, String record, String pastop) {
+        String[] str = new String[10];
+        if (user.equals(pastop))
+            return user + " set a new record of " + record;
+        str[0] = user + " beat the record of " + pastop + " and set the record to " + record + ".";
+        return str[new Random().nextInt(1)];
+    }
 }

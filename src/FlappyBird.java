@@ -52,6 +52,7 @@ public class FlappyBird implements KeyListener {
     static JPanel finalpanel = new JPanel();
     static int bestScore;
     static int flap = 1;
+    static String versus;
 
     static public void resetAll() {
         data = "";
@@ -69,9 +70,10 @@ public class FlappyBird implements KeyListener {
             background.removeAll();
     }
 
-    public FlappyBird (JFrame frame) {
+    public FlappyBird (JFrame frame, String user) {
         resetAll();
         win = frame;
+        username = user;
         widthwin = win.getWidth();
         background = new BackgroundPanel();
         win.add(background);
@@ -82,6 +84,7 @@ public class FlappyBird implements KeyListener {
             background.addKeyListener(this);
         setUI(win);
         runGame(win);
+        getBestScore();
     }
 
     static public void setUI(JFrame win) {
@@ -96,7 +99,6 @@ public class FlappyBird implements KeyListener {
         background.removeAll();
         background.setLayout(new BorderLayout());
         background.add(uipressenter, BorderLayout.CENTER);
-        //uipressenter.setBounds(50, 50, 100, 100);
     }
 
     static void runGame(JFrame win) {
@@ -146,7 +148,6 @@ public class FlappyBird implements KeyListener {
                         else if (player.getY() >= 592 && dead == 0) {
                             dead = 1;
                             finalscore = (int)scoring;
-                            getBestScore();
                             try {Thread.sleep(10);} catch (Exception e) {e.printStackTrace();}
                             player.setIcon(deadbird);
                         }
@@ -161,8 +162,8 @@ public class FlappyBird implements KeyListener {
                         background.repaint();
                     }
                     else if (dead == 1 && !Arrays.asList(finalpanel.getComponents()).contains(youDie)) {
-                        while (bestScore == 0)
-                            try {Thread.sleep(1);} catch (Exception e) {e.printStackTrace();}
+                        data = finalscore > bestScore ? "/doneµ" + username + "µ" + Integer.toString(finalscore) + "µ" + versus : "null";
+                        setBestScore();
                         background.remove(score);
                         finalpanel.setLayout(new GridLayout(0, 1));
                         finalpanel.setOpaque(false);
@@ -170,7 +171,7 @@ public class FlappyBird implements KeyListener {
                         score.setIcon(getScore(yourscore, finalscore, 0));
                         score.setHorizontalAlignment(JLabel.CENTER);
                         finalpanel.add(score);
-                        finalpanel.add(new JLabel(getScore(thebest, bestScore, 1)));
+                        finalpanel.add(new JLabel(getScore(thebest, finalscore < bestScore ? bestScore : finalscore, 1)));
                         finalpanel.add(new JLabel(replayquit));
                         finalpanel.setBounds(0, 0, 1064, 680);
                         background.add(finalpanel);
@@ -188,7 +189,18 @@ public class FlappyBird implements KeyListener {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                bestScore = GetJson.getBestScore(finalscore);
+                versus = GetJson.getBestScore(1);
+                bestScore = Integer.parseInt(GetJson.getBestScore(0));
+            }
+        }).start();
+    }
+
+    static public void setBestScore() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (finalscore > bestScore)
+                    GetJson.setBestScore(finalscore, username);
             }
         }).start();
     }
@@ -212,7 +224,6 @@ public class FlappyBird implements KeyListener {
         icon1.paintIcon(null, g, 0, 0);
         icon2.paintIcon(null, g, icon1.getIconWidth(), 0);
         g.dispose();
-
         return new ImageIcon(combinedImage);
     }
 
@@ -247,7 +258,6 @@ public class FlappyBird implements KeyListener {
                         if (playerRec.intersects(enemyRec.get(i))) {
                             dead = 1;
                             finalscore = (int)scoring;
-                            getBestScore();
                             vertical_velocity = 0;
                             try {Thread.sleep(10);} catch (Exception e) {e.printStackTrace();}
                             player.setIcon(deadbird);
@@ -386,6 +396,7 @@ public class FlappyBird implements KeyListener {
         win.revalidate();
         setUI(win);
         runGame(win);
+        getBestScore();
     }
 
     static public String getData() {
@@ -446,7 +457,7 @@ class BackgroundPanel extends JPanel {
                             x = 0;
                             image = (image + 1) % 2;
                         }
-                        repaint();
+                       repaint(); 
                         try {
                             Thread.sleep(10);
                         } catch (InterruptedException e) {
@@ -465,5 +476,4 @@ class BackgroundPanel extends JPanel {
         g.drawImage(background[image], -x, 0, this);
         g.drawImage(background[(image + 1) % 2], -x + imgBackground.getWidth(null) - 1, 0, this);
     }
-
 }
