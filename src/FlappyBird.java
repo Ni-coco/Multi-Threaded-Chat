@@ -214,7 +214,7 @@ public class FlappyBird implements KeyListener {
             icon2 = new ImageIcon(icon2.getImage().getScaledInstance(icon2.getIconWidth(), icon1.getIconHeight(), Image.SCALE_SMOOTH));
         else {
             for (int i = 1; i < countdigit; i++)
-                divi += 0.2;
+                divi += 0.4;
             icon2 = new ImageIcon(icon2.getImage().getScaledInstance((int)(icon2.getIconHeight() * divi), icon1.getIconHeight(), Image.SCALE_SMOOTH));
         }
         int width = icon1.getIconWidth() + icon2.getIconWidth();
