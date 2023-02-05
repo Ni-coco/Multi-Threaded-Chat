@@ -415,13 +415,11 @@ public class frame implements ActionListener, KeyListener {
         String str = "";
         for (int i = 0; i < listm.size(); i++) {
             str = listm.get(i).getText();
-            if (str.substring(0, listm.get(i).getText().indexOf(" ")).equals(user + ":"))
+            if (str.split(" ")[0].equals(user + ":") || str.split(" ")[0].equals(user))
                 listm.get(i).setForeground(color);
-            else if (str.equals(user + " has join the chat!"))
+            else if (str.split(":", 2)[0].equals(user + " to you") || str.split(" ")[0].equals("You") && user.equals(clientUsername))
                 listm.get(i).setForeground(color);
-            else if (str.split(":", 2)[0].equals(user + " to you"))
-                listm.get(i).setForeground(color);
-            else if (str.substring(0, 3).equals("to "))
+            else if (str.substring(0, 3).equals("to ") && !str.split(" ")[1].equals(user + ":"))
                 listm.get(i).setForeground(color);
         }
     }
