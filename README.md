@@ -5,6 +5,7 @@ This is a chating program where the server is host by the first users who launch
 
 https://user-images.githubusercontent.com/107803698/224487792-0ee214be-5240-45a5-9788-78ca952b890b.mp4
 
+
 Finally the program have two tiny games.
 
 - The first one is a tictactoe game.
@@ -13,6 +14,7 @@ When two players are in the room the players who's turn is can click on where he
 Each time the player who need to play mouve hsi mouse the oponment receive the position where the player is.
 
 https://user-images.githubusercontent.com/107803698/224487829-c1a2d9ee-7856-4623-a761-4ad4dd7d599a.mp4
+
 
 - The second one is a Flappy Bird clone.
 Basically you need to avoid the eagles and touching the ground. Each time you avoid an eagles you gain one point.
