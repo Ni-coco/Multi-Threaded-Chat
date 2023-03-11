@@ -10,7 +10,7 @@ When the first player join the room all the other users receive a message that e
 When two players are in the room the players who's turn is can click on where he want to play.
 Each time the player who need to play mouve hsi mouse the oponment receive the position where the player is.
 
--The second one is a Flappy Bird clone.
+- The second one is a Flappy Bird clone.
 Basically you need to avoid the eagles and touching the ground. Each time you avoid an eagles you gain one point.
 The more you gain points, the more the enemies will appear faster and be fast.
 When you die it display the points you reach and also the best user with his best score.
